@@ -1,15 +1,10 @@
 // GitHub API service for storing dashboard data
 // Stores data in a JSON file in the repo: data/dashboard.json
 
-const GITHUB_REPO_OWNER = 'moazelhag'; // Your GitHub username
+const GITHUB_REPO_OWNER = 'moeiterate'; // Your GitHub username
 const GITHUB_REPO_NAME = 'ReThread'; // Your repo name
 const DATA_FILE_PATH = 'data/dashboard.json';
 const GITHUB_API_BASE = 'https://api.github.com';
-
-interface GitHubFile {
-  content: string;
-  sha?: string;
-}
 
 export interface GitHubConfig {
   token: string;

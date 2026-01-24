@@ -1,4 +1,3 @@
-import React from 'react';
 import roadmapData from '../roadmap.json';
 
 export const Roadmap = () => {
