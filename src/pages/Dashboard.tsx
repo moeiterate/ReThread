@@ -407,21 +407,8 @@ export const Dashboard = () => {
         </div>
       )}
 
-      {/* Brand Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-6 mb-8">
-        <div className="flex items-center gap-2 text-[var(--text-main)]">
-          <svg viewBox="0 0 260 50" fill="none" stroke="currentColor" strokeWidth="0" className="h-10 w-auto text-[var(--text-main)]">
-            <text x="0" y="35" fontFamily="'Playfair Display', serif" fontWeight="800" fontSize="38" fill="var(--text-main)">Re</text>
-            <path d="M 50 26 C 55 26, 55 28, 62 25" stroke="var(--secondary)" strokeWidth="2" fill="none" strokeLinecap="round" />
-            <g stroke="var(--primary)" strokeWidth="2" fill="none">
-              <path d="M 62 25 L 72 22 A 3 3 0 0 1 74 28 L 64 31 A 3 3 0 0 1 62 25 Z" />
-              <path d="M 69 23 L 79 20 A 3 3 0 0 1 81 26 L 71 29 A 3 3 0 0 1 69 23 Z" />
-              <path d="M 76 21 L 86 18 A 3 3 0 0 1 88 24 L 78 27 A 3 3 0 0 1 76 21 Z" />
-            </g>
-            <path d="M 86 21 C 92 20, 92 18, 98 18" stroke="var(--secondary)" strokeWidth="2" fill="none" strokeLinecap="round" />
-            <text x="100" y="35" fontFamily="'Playfair Display', serif" fontWeight="800" fontSize="38" fill="var(--text-main)">Thread</text>
-          </svg>
-        </div>
+      {/* Meta (keep version/date; logo lives in sidebar / mobile top bar) */}
+      <div className="flex justify-end pb-4 mb-4">
         <div className="text-xs text-[var(--text-muted)] uppercase tracking-widest text-right">
           {isEditing ? (
             <input
