@@ -128,7 +128,7 @@ export const Communications = () => {
     <div className="animate-in fade-in duration-500 pt-8">
       {/* Live Feed - Keep ABOVE the protocol */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden mb-8">
-        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <h3 className="font-serif text-xl font-bold flex items-center gap-2">
             <div className="flex items-center gap-1">
               <Hash className="w-5 h-5 text-[#4A154B]" />
@@ -136,7 +136,7 @@ export const Communications = () => {
             </div>
             Live Feed (#standup)
           </h3>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 justify-between sm:justify-end w-full sm:w-auto">
             <a
               href={standupChannelUrl}
               target="_blank"
@@ -201,8 +201,8 @@ export const Communications = () => {
         </div>
       </div>
 
-      <div className="bg-[#f0f4f8] py-16 px-12 rounded-2xl mb-12">
-        <h2 className="font-serif text-4xl mb-12 border-t-2 border-[var(--primary)] pt-8 text-[var(--primary)] flex items-center gap-3">
+      <div className="bg-[#f0f4f8] py-10 sm:py-12 md:py-16 px-6 sm:px-8 md:px-12 rounded-2xl mb-12">
+        <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl mb-8 md:mb-12 border-t-2 border-[var(--primary)] pt-8 text-[var(--primary)] flex items-center gap-3">
           <Hash className="w-8 h-8 text-[#4A154B]" />
           Communications Protocol
         </h2>

@@ -1,7 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Map, Trello, MessageSquare, Settings } from 'lucide-react';
+import { LayoutDashboard, Map, Trello, MessageSquare, Settings, X } from 'lucide-react';
 
-export const Sidebar = () => {
+type SidebarProps = {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+};
+
+export const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
   const links = [
     { to: "/", icon: LayoutDashboard, label: "Dashboard" },
     { to: "/roadmap", icon: Map, label: "Roadmap" },
@@ -10,9 +15,17 @@ export const Sidebar = () => {
   ];
 
   return (
-    <div className="w-64 h-screen bg-white border-r border-[var(--line-color)] fixed left-0 top-0 flex flex-col z-50">
-      <div className="p-8 pb-4">
-        <div className="flex items-center gap-2 text-[var(--text-main)] mb-8">
+    <div
+      className={[
+        "w-64 h-screen bg-white border-r border-[var(--line-color)] fixed left-0 top-0 flex flex-col z-50",
+        "transform transition-transform duration-200 ease-out md:translate-x-0",
+        mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+      ].join(" ")}
+      role="navigation"
+      aria-label="Primary"
+    >
+      <div className="p-6 pb-4 md:p-8">
+        <div className="flex items-center justify-between gap-2 text-[var(--text-main)] mb-6 md:mb-8">
              <svg viewBox="0 0 260 50" fill="none" stroke="currentColor" strokeWidth="0" className="h-6 w-auto text-[var(--text-main)]">
                 <text x="0" y="35" fontFamily="'Playfair Display', serif" fontWeight="800" fontSize="38" fill="var(--text-main)">Re</text>
                 <path d="M 50 26 C 55 26, 55 28, 62 25" stroke="var(--secondary)" strokeWidth="2" fill="none" strokeLinecap="round" />
@@ -24,6 +37,14 @@ export const Sidebar = () => {
                 <path d="M 86 21 C 92 20, 92 18, 98 18" stroke="var(--secondary)" strokeWidth="2" fill="none" strokeLinecap="round" />
                 <text x="100" y="35" fontFamily="'Playfair Display', serif" fontWeight="800" fontSize="38" fill="var(--text-main)">Thread</text>
             </svg>
+            <button
+              type="button"
+              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg border border-[var(--line-color)] bg-white text-[var(--text-main)]"
+              onClick={onClose}
+              aria-label="Close navigation"
+            >
+              <X className="h-5 w-5" />
+            </button>
         </div>
       </div>
 
@@ -32,6 +53,7 @@ export const Sidebar = () => {
             <NavLink
               key={link.label}
               to={link.to}
+              onClick={onClose}
               className={({ isActive }) => `
                 flex items-center gap-3 px-4 py-3 rounded-lg transition-all group
                 ${isActive 
@@ -47,7 +69,14 @@ export const Sidebar = () => {
       </nav>
 
       <div className="p-4 border-t border-[var(--line-color)]">
-        <a href="#" className="flex items-center gap-3 px-4 py-3 text-[var(--text-muted)] hover:bg-gray-50 rounded-lg transition-all">
+        <a
+          href="#"
+          className="flex items-center gap-3 px-4 py-3 text-[var(--text-muted)] hover:bg-gray-50 rounded-lg transition-all"
+          onClick={(e) => {
+            e.preventDefault();
+            onClose?.();
+          }}
+        >
             <Settings className="w-5 h-5" />
             <span className="text-sm tracking-wide">Settings</span>
         </a>

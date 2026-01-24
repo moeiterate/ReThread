@@ -343,13 +343,13 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-24 animate-in fade-in duration-500 relative">
+    <div className="space-y-14 md:space-y-24 animate-in fade-in duration-500 relative">
       {/* Edit Controls */}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
+      <div className="fixed top-16 md:top-4 right-4 z-50 flex flex-row md:flex-col gap-2">
         {!isEditing ? (
           <button
             onClick={() => setIsEditing(true)}
-            className="bg-[var(--primary)] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg"
+            className="bg-[var(--primary)] text-white px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg text-sm md:text-base"
           >
             <Edit2 className="w-4 h-4" />
             Edit
@@ -359,7 +359,7 @@ export const Dashboard = () => {
             <button
               onClick={handleSave}
               disabled={!hasChanges || saving}
-              className="bg-[var(--secondary)] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[var(--secondary)] text-white px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
             >
               <Save className="w-4 h-4" />
               {saving ? 'Saving...' : 'Save'}
@@ -367,14 +367,14 @@ export const Dashboard = () => {
             <button
               onClick={handleCancel}
               disabled={saving}
-              className="bg-gray-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
+              className="bg-gray-500 text-white px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50 text-sm md:text-base"
             >
               <X className="w-4 h-4" />
               Cancel
             </button>
             <button
               onClick={() => addSection('text')}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg"
+              className="bg-green-600 text-white px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg text-sm md:text-base"
             >
               <Plus className="w-4 h-4" />
               Add Section
@@ -408,7 +408,7 @@ export const Dashboard = () => {
       )}
 
       {/* Brand Header */}
-      <div className="flex justify-between items-end pb-6 mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-6 mb-8">
         <div className="flex items-center gap-2 text-[var(--text-main)]">
           <svg viewBox="0 0 260 50" fill="none" stroke="currentColor" strokeWidth="0" className="h-10 w-auto text-[var(--text-main)]">
             <text x="0" y="35" fontFamily="'Playfair Display', serif" fontWeight="800" fontSize="38" fill="var(--text-main)">Re</text>
@@ -441,16 +441,16 @@ export const Dashboard = () => {
       </div>
 
       {/* Document Header */}
-      <header className="pb-8 border-b-2 border-[var(--text-main)] mb-20">
+      <header className="pb-8 border-b-2 border-[var(--text-main)] mb-12 md:mb-20">
         {isEditing ? (
           <input
             type="text"
             value={data.documentTitle}
             onChange={(e) => updateField('documentTitle', e.target.value)}
-            className="font-serif text-2xl italic text-[var(--text-main)] pl-4 border-l-2 border-[var(--line-color)] leading-snug w-full bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]"
+            className="font-serif text-xl md:text-2xl italic text-[var(--text-main)] pl-4 border-l-2 border-[var(--line-color)] leading-snug w-full bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]"
           />
         ) : (
-          <h2 className="font-serif text-2xl italic text-[var(--text-main)] pl-4 border-l-2 border-[var(--line-color)] leading-snug">
+          <h2 className="font-serif text-xl md:text-2xl italic text-[var(--text-main)] pl-4 border-l-2 border-[var(--line-color)] leading-snug">
             {data.documentTitle}
           </h2>
         )}
@@ -480,31 +480,31 @@ export const Dashboard = () => {
                       value={section.title || ''}
                       onChange={(e) => updateSection(section.id, { title: e.target.value })}
                       placeholder="Title"
-                      className="text-7xl font-serif font-medium leading-none tracking-tight w-full bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] mb-2"
+                      className="text-4xl sm:text-5xl lg:text-7xl font-serif font-medium leading-none tracking-tight w-full bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] mb-2"
                     />
                     <input
                       type="text"
                       value={section.subtitle || ''}
                       onChange={(e) => updateSection(section.id, { subtitle: e.target.value })}
                       placeholder="Subtitle"
-                      className="text-7xl font-serif italic text-[var(--secondary)] leading-none tracking-tight w-full bg-transparent border-b border-dashed border-[var(--secondary)] focus:outline-none focus:border-[var(--primary)]"
+                      className="text-4xl sm:text-5xl lg:text-7xl font-serif italic text-[var(--secondary)] leading-none tracking-tight w-full bg-transparent border-b border-dashed border-[var(--secondary)] focus:outline-none focus:border-[var(--primary)]"
                     />
                   </div>
                   <textarea
                     value={section.content}
                     onChange={(e) => updateSection(section.id, { content: e.target.value })}
                     placeholder="Description"
-                    className="text-2xl text-[var(--text-muted)] max-w-3xl leading-relaxed font-light w-full bg-transparent border border-dashed border-[var(--text-muted)] rounded p-2 focus:outline-none focus:border-[var(--primary)]"
+                    className="text-base sm:text-lg lg:text-2xl text-[var(--text-muted)] max-w-3xl leading-relaxed font-light w-full bg-transparent border border-dashed border-[var(--text-muted)] rounded p-2 focus:outline-none focus:border-[var(--primary)]"
                     rows={3}
                   />
                 </>
               ) : (
                 <>
-                  <h1 className="text-7xl font-serif font-medium leading-none mb-8 tracking-tight">
+                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-serif font-medium leading-none mb-6 md:mb-8 tracking-tight">
                     {section.title} <br />
                     <span className="text-[var(--secondary)] italic">{section.subtitle}</span>
                   </h1>
-                  <p className="text-2xl text-[var(--text-muted)] max-w-3xl leading-relaxed font-light">
+                  <p className="text-base sm:text-lg lg:text-2xl text-[var(--text-muted)] max-w-3xl leading-relaxed font-light">
                     {section.content}
                   </p>
                 </>
@@ -522,7 +522,7 @@ export const Dashboard = () => {
                     value={section.title || ''}
                     onChange={(e) => updateSection(section.id, { title: e.target.value })}
                     placeholder="Section Title"
-                    className="font-serif text-3xl mb-4 font-medium border-t border-[var(--line-color)] pt-12 mt-24 w-full bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]"
+                    className="font-serif text-2xl md:text-3xl mb-4 font-medium border-t border-[var(--line-color)] pt-8 md:pt-12 mt-16 md:mt-24 w-full bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]"
                   />
                   <textarea
                     value={section.content}
@@ -534,7 +534,7 @@ export const Dashboard = () => {
               ) : (
                 <>
                   {section.title && (
-                    <h2 className="font-serif text-3xl mb-8 font-medium border-t border-[var(--line-color)] pt-12 mt-24">
+                    <h2 className="font-serif text-2xl md:text-3xl mb-6 md:mb-8 font-medium border-t border-[var(--line-color)] pt-8 md:pt-12 mt-16 md:mt-24">
                       {section.title}
                     </h2>
                   )}
@@ -556,7 +556,7 @@ export const Dashboard = () => {
                     value={section.title || ''}
                     onChange={(e) => updateSection(section.id, { title: e.target.value })}
                     placeholder="Section Title"
-                    className="font-serif text-3xl mb-8 font-medium border-t border-[var(--line-color)] pt-12 mt-24 w-full bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]"
+                    className="font-serif text-2xl md:text-3xl mb-6 md:mb-8 font-medium border-t border-[var(--line-color)] pt-8 md:pt-12 mt-16 md:mt-24 w-full bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]"
                   />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
                     {section.items?.map((item, itemIndex) => (
@@ -602,7 +602,7 @@ export const Dashboard = () => {
               ) : (
                 <>
                   {section.title && (
-                    <h2 className="font-serif text-3xl mb-8 font-medium border-t border-[var(--line-color)] pt-12 mt-24">
+                    <h2 className="font-serif text-2xl md:text-3xl mb-6 md:mb-8 font-medium border-t border-[var(--line-color)] pt-8 md:pt-12 mt-16 md:mt-24">
                       {section.title}
                     </h2>
                   )}
@@ -633,11 +633,11 @@ export const Dashboard = () => {
                     value={section.title || ''}
                     onChange={(e) => updateSection(section.id, { title: e.target.value })}
                     placeholder="Section Title"
-                    className="font-serif text-3xl mb-8 font-medium border-t border-[var(--line-color)] pt-12 mt-24 w-full bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]"
+                    className="font-serif text-2xl md:text-3xl mb-6 md:mb-8 font-medium border-t border-[var(--line-color)] pt-8 md:pt-12 mt-16 md:mt-24 w-full bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]"
                   />
-                  <div className="ml-4 border-l border-[var(--line-color)] space-y-0">
+                  <div className="ml-0 sm:ml-4 border-l-0 sm:border-l border-[var(--line-color)] space-y-0">
                     {section.items?.map((item) => (
-                      <div key={item.id} className="grid grid-cols-[120px_1fr] pl-8 py-8 relative">
+                      <div key={item.id} className="grid grid-cols-1 sm:grid-cols-[120px_1fr] pl-0 sm:pl-8 py-6 sm:py-8 relative gap-3 sm:gap-0">
                         {isEditing && (
                           <button
                             onClick={() => removeSectionItem(section.id, item.id)}
@@ -647,13 +647,13 @@ export const Dashboard = () => {
                             <Trash2 className="w-3 h-3" />
                           </button>
                         )}
-                        <div className="absolute left-[-5px] top-10 w-2.5 h-2.5 bg-[var(--bg-color)] border-2 border-[var(--secondary)] rounded-full"></div>
+                        <div className="hidden sm:block absolute left-[-5px] top-10 w-2.5 h-2.5 bg-[var(--bg-color)] border-2 border-[var(--secondary)] rounded-full"></div>
                         <input
                           type="text"
                           value={item.label || ''}
                           onChange={(e) => updateSectionItem(section.id, item.id, { label: e.target.value })}
                           placeholder="Label"
-                          className="font-bold text-sm text-[var(--text-muted)] uppercase tracking-widest mt-1 bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]"
+                          className="font-bold text-sm text-[var(--text-muted)] uppercase tracking-widest mt-0 sm:mt-1 bg-transparent border-b border-dashed border-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]"
                         />
                         <div>
                           <input
@@ -687,14 +687,14 @@ export const Dashboard = () => {
               ) : (
                 <>
                   {section.title && (
-                    <h2 className="font-serif text-3xl mb-8 font-medium border-t border-[var(--line-color)] pt-12 mt-24">
+                    <h2 className="font-serif text-2xl md:text-3xl mb-6 md:mb-8 font-medium border-t border-[var(--line-color)] pt-8 md:pt-12 mt-16 md:mt-24">
                       {section.title}
                     </h2>
                   )}
-                  <div className="ml-4 border-l border-[var(--line-color)] space-y-0">
+                  <div className="ml-0 sm:ml-4 border-l-0 sm:border-l border-[var(--line-color)] space-y-0">
                     {section.items?.map((item) => (
-                      <div key={item.id} className="grid grid-cols-[120px_1fr] pl-8 py-8 relative">
-                        <div className="absolute left-[-5px] top-10 w-2.5 h-2.5 bg-[var(--bg-color)] border-2 border-[var(--secondary)] rounded-full"></div>
+                      <div key={item.id} className="grid grid-cols-1 sm:grid-cols-[120px_1fr] pl-0 sm:pl-8 py-6 sm:py-8 relative gap-3 sm:gap-0">
+                        <div className="hidden sm:block absolute left-[-5px] top-10 w-2.5 h-2.5 bg-[var(--bg-color)] border-2 border-[var(--secondary)] rounded-full"></div>
                         <div className="font-bold text-sm text-[var(--text-muted)] uppercase tracking-widest mt-1">
                           {item.label}
                         </div>

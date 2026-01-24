@@ -39,7 +39,7 @@ export const Backlog = () => {
     <div className="animate-in fade-in duration-500 pt-8">
       {/* Trello Board Embed - Show FIRST */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden mb-12">
-        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <h3 className="font-serif text-xl font-bold flex items-center gap-2">
             <Trello className="w-6 h-6 text-[#0079BF]" />
             Live Sprint Board
@@ -60,10 +60,10 @@ export const Backlog = () => {
       </div>
 
       {/* Command Center - Show BELOW board */}
-      <div className="bg-[var(--primary)] text-white py-24 px-12 rounded-2xl mb-8">
+      <div className="bg-[var(--primary)] text-white py-12 sm:py-16 md:py-24 px-6 sm:px-8 md:px-12 rounded-2xl mb-8">
         <div className="text-center mb-12">
-          <h2 className="font-serif text-5xl mb-6">Central Command</h2>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl mb-4 sm:mb-6">Central Command</h2>
+          <p className="text-base sm:text-lg md:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
             <strong>The single source of truth.</strong><br />
             All new leads start in the <em>Backlog</em>. Use <em>Comments</em> for async updates. Move your own cards.<br />
             If it's not in Trello, it doesn't exist. Shared diligence drives our speed.
@@ -75,7 +75,7 @@ export const Backlog = () => {
             href={trelloBoardUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-[var(--secondary)] text-white px-8 py-4 rounded-full font-bold text-lg flex items-center gap-3 hover:opacity-90 transition-opacity shadow-xl"
+            className="bg-[var(--secondary)] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-base sm:text-lg flex items-center gap-3 hover:opacity-90 transition-opacity shadow-xl"
           >
             <ExternalLink className="w-5 h-5" />
             Open Full Board in New Tab →

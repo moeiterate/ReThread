@@ -9,14 +9,14 @@ export const Roadmap = () => {
       
       <div className="border-t-2 border-b-2 border-[var(--text-main)] divide-y divide-[var(--line-color)]">
         {roadmapData.sprints.map((sprint, idx) => (
-          <div key={idx} className="grid grid-cols-[150px_1fr_1fr] py-8">
+          <div key={idx} className="grid grid-cols-1 md:grid-cols-[150px_1fr_1fr] py-6 md:py-8 gap-3 md:gap-0">
             <div className={`font-bold text-sm uppercase tracking-widest mt-1 ${
               sprint.label === 'Sprint 1' ? 'text-[var(--secondary)]' : 'text-[var(--text-muted)]'
             }`}>
               {sprint.label}
             </div>
             
-            <div className="pr-8">
+            <div className="md:pr-8">
               <strong className="block font-serif text-xl mb-2">{sprint.title}</strong>
               <span className="text-[var(--text-muted)]">{sprint.date}</span>
             </div>
