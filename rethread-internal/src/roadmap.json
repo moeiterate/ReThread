@@ -1,0 +1,18 @@
+{
+  "initiatives": [
+    {
+      "id": "1",
+      "title": "MVP Launch",
+      "quarter": "Q1 2026",
+      "status": "PLANNED",
+      "description": "Initial release to internal stakeholders"
+    },
+    {
+      "id": "2",
+      "title": "Client Portal",
+      "quarter": "Q2 2026",
+      "status": "PLANNED",
+      "description": "External facing view for clients"
+    }
+  ]
+}

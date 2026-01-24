@@ -1,0 +1,32 @@
+{
+  "sprints": [
+    {
+      "label": "Sprint 1",
+      "title": "Transportation",
+      "date": "Upcoming Monday",
+      "description": "Focus: Route Optimization & Dispatch (NEMT/Shuttles). Testing the \"Legacy Hudson\" replacement hypothesis.",
+      "color": "secondary"
+    },
+    {
+      "label": "Review",
+      "title": "Go / No-Go",
+      "date": "Friday (Week 2)",
+      "description": "Analyze outreach data. If traction exists → Close deals. If no traction → Select next vertical.",
+      "color": "primary"
+    },
+    {
+      "label": "Sprint 2",
+      "title": "Startups / Alt Vertical",
+      "date": "Monday (Week 3)",
+      "description": "Potential Focus: \"Research as a Service\" for YC/Startups OR Medical Couriers.",
+      "color": "primary"
+    },
+    {
+      "label": "Retro",
+      "title": "Month 1 Audit",
+      "date": "Friday (Week 4)",
+      "description": "Full operational review. Effectiveness of \"Demo First\" engine. Financial health check.",
+      "color": "primary"
+    }
+  ]
+}

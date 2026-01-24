@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReThread | Draft Internal Strategy, Planning & Operations Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Palette: Grounded Enterprise */
+            --bg-color: #fdfcf8;
+            --text-main: #1a202c;
+            --text-muted: #4a5568;
+            --primary: #2d3748;
+            --secondary: #dd6b20;
+            --tertiary: #8fa382;
+            --line-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Subtle Texture */
+        .texture {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Brand Header (Logo & Version) */
+        .brand-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Document Header */
+        header {
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--text-main);
+            margin-bottom: 5rem;
+        }
+
+        .document-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            font-style: italic;
+            color: var(--text-main);
+            margin: 0 0 1.5rem 0;
+            padding-left: 1rem;
+            border-left: 2px solid var(--line-color);
+            line-height: 1.3;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-weight: 800;
+            font-size: 2rem;
+            color: var(--text-main);
+            text-decoration: none;
+            letter-spacing: -0.03em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo svg {
+            width: 32px; height: 32px; color: var(--secondary);
+        }
+
+        .meta-info {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        /* Typography */
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 5rem;
+            line-height: 1;
+            margin: 0 0 2rem 0;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        h1 span {
+            font-style: italic;
+            color: var(--secondary);
+        }
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+            border-top: 1px solid var(--line-color);
+            padding-top: 3rem;
+            margin-top: 6rem;
+        }
+
+        h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin: 0 0 0.5rem 0;
+            font-weight: 600;
+        }
+
+        .lead {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            line-height: 1.4;
+            font-weight: 400;
+        }
+
+        /* Editorial Layouts (No Boxes) */
+        .editorial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 4rem;
+        }
+
+        .editorial-item {
+            position: relative;
+            padding-top: 1.5rem;
+        }
+
+        .editorial-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 40px; height: 2px;
+            background: var(--secondary);
+        }
+
+        .number {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Process Timeline (Vertical Editorial) */
+        .timeline {
+            display: grid;
+            grid-template-columns: 1fr;
+            border-left: 1px solid var(--line-color);
+            margin-left: 1rem;
+        }
+
+        .timeline-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            padding: 2rem 0 2rem 2rem;
+            position: relative;
+            align-items: flex-start;
+        }
+
+        .timeline-row::before {
+            content: '';
+            position: absolute;
+            left: -5px; top: 2.5rem;
+            width: 9px; height: 9px;
+            background: var(--bg-color);
+            border: 2px solid var(--secondary);
+            border-radius: 50%;
+        }
+
+        .timeline-label {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+        }
+
+        /* Roadmap Table Style */
+        .roadmap-grid {
+            display: grid;
+            gap: 0;
+            border-top: 2px solid var(--text-main);
+            border-bottom: 2px solid var(--text-main);
+        }
+
+        .roadmap-row {
+            display: grid;
+            grid-template-columns: 150px 1fr 1fr;
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--line-color);
+            align-items: flex-start;
+        }
+
+        .roadmap-row:last-child {
+            border-bottom: none;
+        }
+
+        .roadmap-col strong {
+            display: block;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Trello Callout */
+        .tooling {
+            background: var(--primary);
+            color: #fff;
+            padding: 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6rem;
+        }
+
+        .tooling h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            font-family: 'DM Sans', sans-serif;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #fff;
+            color: var(--primary);
+        }
+
+        footer {
+            margin-top: 4rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="texture"></div>
+
+    <div class="container">
+        
+        <div class="brand-header">
+            <a href="#" class="logo">
+                <!-- Typographical Logo: ReThread with Dark Chain & Orange Connections -->
+                <svg viewBox="0 0 260 50" fill="none" stroke="currentColor" stroke-width="0" style="width: auto; height: 42px; color: var(--text-main);">
+                    
+                    <!-- Text: Re -->
+                    <text x="0" y="35" font-family="'Playfair Display', serif" font-weight="800" font-size="38" fill="var(--text-main)">Re</text>
+
+                    <!-- Connection 1: Orange Thread from 'e' to Chain -->
+                    <path d="M 50 26 C 55 26, 55 28, 62 25" stroke="var(--secondary)" stroke-width="2" fill="none" stroke-linecap="round" />
+
+                    <!-- The Chain: 3 Small Dark Links -->
+                    <g stroke="var(--primary)" stroke-width="2" fill="none">
+                        <!-- Link 1 -->
+                        <path d="M 62 25 L 72 22 A 3 3 0 0 1 74 28 L 64 31 A 3 3 0 0 1 62 25 Z" />
+                        <!-- Link 2 -->
+                        <path d="M 69 23 L 79 20 A 3 3 0 0 1 81 26 L 71 29 A 3 3 0 0 1 69 23 Z" />
+                        <!-- Link 3 -->
+                        <path d="M 76 21 L 86 18 A 3 3 0 0 1 88 24 L 78 27 A 3 3 0 0 1 76 21 Z" />
+                    </g>
+
+                    <!-- Connection 2: Orange Thread from Chain to 'T' -->
+                    <path d="M 86 21 C 92 20, 92 18, 98 18" stroke="var(--secondary)" stroke-width="2" fill="none" stroke-linecap="round" />
+
+                    <!-- Text: Thread -->
+                    <text x="100" y="35" font-family="'Playfair Display', serif" font-weight="800" font-size="38" fill="var(--text-main)">Thread</text>
+                </svg>
+            </a>
+            <div class="meta-info">
+                Internal OS v1.0<br>
+                Updated Jan 2026
+            </div>
+        </div>
+
+        <header>
+            <h2 class="document-title">Draft Internal Strategy, Planning & Operations Document</h2>
+        </header>
+
+        <section>
+            <h1>Weaving Strategy <br><span>Into Software.</span></h1>
+            <p class="lead">
+                We identify fragmented workflows in mid-market and enterprise organizations and <strong>re-thread</strong> them into seamless, data-driven systems. We replace legacy debt with custom, owned solutions—but only after rigorous validation.
+            </p>
+        </section>
+
+        <!-- Core Tenets -->
+        <section>
+            <h2>Organizational Tenets (DRAFT)</h2>
+            <div class="editorial-grid">
+                <div class="editorial-item">
+                    <span class="number">01</span>
+                    <h3>Consulting Before Coding</h3>
+                    <p class="text-muted">We are strategic partners to $1M+ revenue organizations. Code is a tool, not the product. We value impact over hours.</p>
+                </div>
+                <div class="editorial-item">
+                    <span class="number">02</span>
+                    <h3>Validate, Then Build</h3>
+                    <p class="text-muted">We never build "speculative" products. Mockups sell the vision; engineering starts only after the contract is signed.</p>
+                </div>
+                <div class="editorial-item">
+                    <span class="number">03</span>
+                    <h3>Data Over Intuition</h3>
+                    <p class="text-muted">We quantify the pain (e.g., "$10k/mo lost") before pitching. Research is our spearhead for acquisition.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Process Cycle -->
+        <section>
+            <h2>The 2-Week Sprint Cycle</h2>
+            <div class="timeline">
+                <div class="timeline-row">
+                    <div class="timeline-label">Phase 1</div>
+                    <div>
+                        <h3>Intake & Research</h3>
+                        <p class="text-muted">Anytime an idea strikes, it goes to the Backlog. Before a Sprint starts, we conduct market research to assess viability.</p>
+                    </div>
+                </div>
+                <div class="timeline-row">
+                    <div class="timeline-label">Week 1</div>
+                    <div>
+                        <h3>Build & Prep</h3>
+                        <p class="text-muted"><strong>Monday Sprint Start:</strong> Select top backlog item. Create "Demo First" assets. Rebuild prospect's site/app as a high-fidelity mockup.</p>
+                    </div>
+                </div>
+                <div class="timeline-row">
+                    <div class="timeline-label">Week 2</div>
+                    <div>
+                        <h3>Outreach & Execution</h3>
+                        <p class="text-muted">"I built this for you." Cold outreach with assets. Goal: Book demo meetings to validate interest.</p>
+                    </div>
+                </div>
+                <div class="timeline-row">
+                    <div class="timeline-label">Review</div>
+                    <div>
+                        <h3>Retro & Pivot</h3>
+                        <p class="text-muted"><strong>Friday Wk 2:</strong> Analyze response data. If valid → Contract. If invalid → Kill. Decide topic for Sprint 2.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Roadmap -->
+        <section>
+            <h2>Strategic Roadmap</h2>
+            <div class="roadmap-grid">
+                
+                <div class="roadmap-row">
+                    <div class="roadmap-col timeline-label" style="color: var(--secondary);">Sprint 1</div>
+                    <div class="roadmap-col">
+                        <strong>Transportation</strong>
+                        <span class="text-muted">Upcoming Monday</span>
+                    </div>
+                    <div class="roadmap-col text-muted">
+                        Focus: Route Optimization & Dispatch (NEMT/Shuttles). Testing the "Legacy Hudson" replacement hypothesis.
+                    </div>
+                </div>
+
+                <div class="roadmap-row">
+                    <div class="roadmap-col timeline-label">Review</div>
+                    <div class="roadmap-col">
+                        <strong>Go / No-Go</strong>
+                        <span class="text-muted">Friday (Week 2)</span>
+                    </div>
+                    <div class="roadmap-col text-muted">
+                        Analyze outreach data. If traction exists → Close deals. If no traction → Select next vertical.
+                    </div>
+                </div>
+
+                <div class="roadmap-row">
+                    <div class="roadmap-col timeline-label">Sprint 2</div>
+                    <div class="roadmap-col">
+                        <strong>Startups / Alt Vertical</strong>
+                        <span class="text-muted">Monday (Week 3)</span>
+                    </div>
+                    <div class="roadmap-col text-muted">
+                        Potential Focus: "Research as a Service" for YC/Startups OR Medical Couriers.
+                    </div>
+                </div>
+
+                <div class="roadmap-row">
+                    <div class="roadmap-col timeline-label">Retro</div>
+                    <div class="roadmap-col">
+                        <strong>Month 1 Audit</strong>
+                        <span class="text-muted">Friday (Week 4)</span>
+                    </div>
+                    <div class="roadmap-col text-muted">
+                        Full operational review. Effectiveness of "Demo First" engine. Financial health check.
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Central Command -->
+        <section class="command-center" style="margin-top: 6rem; background: var(--primary); padding: 6rem 0; color: white;">
+            <div class="container" style="padding-top: 0; padding-bottom: 0;">
+                <div style="text-align: center; margin-bottom: 4rem;">
+                    <h2 style="font-family: 'Playfair Display', serif; font-size: 3rem; margin: 0 0 1rem 0; border: none; padding: 0; color: white;">Central Command</h2>
+                    <p style="color: rgba(255,255,255,0.8); max-width: 700px; margin: 0 auto; font-size: 1.1rem; line-height: 1.6;">
+                        <strong>The single source of truth.</strong><br>
+                        All new leads start in the <em>Backlog</em>. Use <em>Comments</em> for async updates. Move your own cards. <br>
+                        If it's not in Trello, it doesn't exist. Shared diligence drives our speed.
+                    </p>
+                </div>
+
+                <!-- Laptop Mockup Container -->
+                <div class="laptop-wrapper" style="position: relative; max-width: 900px; margin: 0 auto;">
+                    
+                    <!-- Top Lid / Bezel -->
+                    <div style="background: #111; padding: 16px 16px 0 16px; border-radius: 20px 20px 0 0; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.5);">
+                        
+                        <!-- Camera Dot -->
+                        <div style="width: 100%; height: 24px; display: flex; justify-content: center; align-items: center; opacity: 0.8;">
+                            <div style="width: 6px; height: 6px; background: #333; border-radius: 50%;"></div>
+                        </div>
+
+                        <!-- Screen Area -->
+                        <div style="overflow: hidden; border-radius: 8px 8px 0 0; position: relative;">
+                            <img src="public/Screenshot 2026-01-24 at 11.27.29 AM.png" alt="ReThread Trello Board" style="width: 100%; display: block;">
+                            
+                            <!-- Glassmorphism Button Overlay -->
+                            <div style="position: absolute; bottom: 24px; right: 24px;">
+                                <a href="https://trello.com/invite/b/6974090f27a8fbaf8c11e6f8/ATTIff9ca1d998508cd51b5e4c9c60e8c619D680FE6E/rethread-sprint-board" target="_blank" class="btn" style="
+                                    background: rgba(221, 107, 32, 0.95); 
+                                    backdrop-filter: blur(4px);
+                                    border: 1px solid rgba(255,255,255,0.2); 
+                                    box-shadow: 0 8px 32px rgba(0,0,0,0.3); 
+                                    color: white; 
+                                    border-radius: 50px; 
+                                    padding: 14px 32px; 
+                                    font-weight: 700;
+                                    font-size: 0.9rem;
+                                    letter-spacing: 1px;">
+                                    Access Live Board &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Base / Hinge -->
+                    <div style="background: #2d2d2d; height: 18px; border-radius: 0 0 16px 16px; position: relative; width: 100%; box-shadow: 0 10px 20px rgba(0,0,0,0.2) inset;">
+                        <!-- Thumb Notch -->
+                        <div style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 8px; background: #1a1a1a; border-radius: 0 0 8px 8px;"></div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Communications Protocol -->
+        <section style="background: #f0f4f8; padding: 6rem 0; margin-bottom: 4rem;">
+            <div class="container" style="padding-top: 0; padding-bottom: 0;">
+                <h2 style="font-family: 'Playfair Display', serif; font-size: 2.5rem; margin: 0 0 3rem 0; border-top: 2px solid var(--primary); padding-top: 2rem; color: var(--primary);">Communications Protocol</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;">
+                    
+                    <!-- Column 1: Channels -->
+                    <div>
+                        <h3 style="color: var(--secondary); font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem;">Slack Architecture</h3>
+                        <p style="margin-bottom: 2rem; color: var(--text-muted);">Async-first. Sync-strategic. <a href="https://app.slack.com/client/T0AAME65N1L/C0AAPF88674?entry_point=default_oauth" style="color: var(--primary); font-weight: 700;">Open Workspace &rarr;</a></p>
+                        
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 1.5rem; padding-left: 1.5rem; border-left: 2px solid var(--line-color);">
+                                <strong style="display: block; color: var(--primary);">#standup</strong>
+                                <span style="font-size: 0.9rem; color: var(--text-muted);">Daily async updates (Yesterday, Today, Blockers).</span>
+                            </li>
+                            <li style="margin-bottom: 1.5rem; padding-left: 1.5rem; border-left: 2px solid var(--line-color);">
+                                <strong style="display: block; color: var(--primary);">#leads</strong>
+                                <span style="font-size: 0.9rem; color: var(--text-muted);">Target tracking, cold outreach results, and pipeline updates.</span>
+                            </li>
+                            <li style="margin-bottom: 1.5rem; padding-left: 1.5rem; border-left: 2px solid var(--line-color);">
+                                <strong style="display: block; color: var(--primary);">#research</strong>
+                                <span style="font-size: 0.9rem; color: var(--text-muted);">NotebookLM insights, market data, and industry reports.</span>
+                            </li>
+                            <li style="margin-bottom: 1.5rem; padding-left: 1.5rem; border-left: 2px solid var(--line-color);">
+                                <strong style="display: block; color: var(--primary);">#sprint-planning</strong>
+                                <span style="font-size: 0.9rem; color: var(--text-muted);">Bi-weekly prioritization and validation gates.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 2: Rituals & Visual -->
+                    <div>
+                        <h3 style="color: var(--secondary); font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem;">Sync Rituals</h3>
+                        
+                        <!-- Visual Wrapper for Slack Screenshot -->
+                        <div style="margin-bottom: 2rem; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05);">
+                            <!-- Browser Chrome Header -->
+                            <div style="background: #fdfdfd; padding: 10px 15px; border-bottom: 1px solid #eee; display: flex; gap: 6px; align-items: center;">
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background: #ff5f56;"></div>
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background: #ffbd2e;"></div>
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background: #27c93f;"></div>
+                            </div>
+                            <!-- Screenshot -->
+                            <img src="public/Screenshot 2026-01-24 at 11.29.59 AM.png" alt="ReThread Slack" style="width: 100%; display: block;">
+                        </div>
+
+                        <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                            <div style="margin-bottom: 2rem;">
+                                <strong style="font-family: 'Playfair Display', serif; font-size: 1.5rem; display: block; margin-bottom: 0.5rem;">Bi-Weekly Huddle</strong>
+                                <div style="color: var(--text-muted); font-size: 1.1rem;">
+                                    Every <strong>Tuesday</strong> & <strong>Thursday</strong><br>
+                                    <span style="color: var(--primary); font-weight: 700;">10:00 AM - 10:15 AM MST</span>
+                                </div>
+                            </div>
+
+                            <a href="https://app.slack.com/client/T0AAME65N1L/C0ABHRD0L9E" target="_blank" class="btn" style="background: var(--primary); color: white; width: 100%; text-align: center; box-sizing: border-box;">
+                                Join Standup Channel &rarr;
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            ReThread &copy; 2026 Strategy Document
+        </footer>
+
+    </div>
+
+</body>
+</html>

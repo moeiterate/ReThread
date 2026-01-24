@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReThread | Strategic Software Consultancy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Palette: Grounded Enterprise */
+            --bg-color: #fdfcf8;
+            --text-main: #1a202c;
+            --text-muted: #4a5568;
+            --primary: #2d3748;
+            --secondary: #dd6b20;
+            --tertiary: #8fa382;
+            --line-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Subtle Texture */
+        .texture {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header & Logo */
+        header {
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--line-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links a {
+            margin-left: 2rem;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary);
+        }
+
+        .cta-button {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-left: 2rem;
+            transition: background 0.2s;
+        }
+
+        .cta-button:hover {
+            background: var(--secondary);
+            color: white !important;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 8rem 0 6rem;
+            max-width: 900px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin: 0 0 2rem 0;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        h1 span {
+            font-style: italic;
+            color: var(--secondary);
+        }
+
+        .lead {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            font-weight: 400;
+            max-width: 750px;
+        }
+
+        /* Services Grid (Editorial Style) */
+        .section-title {
+            font-family: 'DM Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            display: block;
+            font-weight: 700;
+        }
+
+        .services {
+            padding: 6rem 0;
+            border-top: 1px solid var(--line-color);
+        }
+
+        .service-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 4rem;
+            align-items: flex-start;
+        }
+
+        .service-row h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .service-desc p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .service-list {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .service-list li {
+            position: relative;
+            padding-left: 1.5rem;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .service-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--secondary);
+        }
+
+        /* Methodology */
+        .methodology {
+            background: var(--primary);
+            color: white;
+            padding: 6rem 0;
+        }
+
+        .method-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 3rem;
+        }
+
+        .method-item h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .method-item p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 0;
+            border-top: 1px solid var(--line-color);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="texture"></div>
+
+    <div class="container">
+        <header>
+            <a href="#" class="logo">
+                <!-- Typographical Logo: ReThread with Dark Chain & Orange Connections -->
+                <svg viewBox="0 0 260 50" fill="none" stroke="currentColor" stroke-width="0" style="width: auto; height: 42px; color: var(--text-main);">
+                    
+                    <!-- Text: Re -->
+                    <text x="0" y="35" font-family="'Playfair Display', serif" font-weight="800" font-size="38" fill="var(--text-main)">Re</text>
+
+                    <!-- Connection 1: Orange Thread from 'e' to Chain -->
+                    <path d="M 50 26 C 55 26, 55 28, 62 25" stroke="var(--secondary)" stroke-width="2" fill="none" stroke-linecap="round" />
+
+                    <!-- The Chain: 3 Small Dark Links -->
+                    <g stroke="var(--primary)" stroke-width="2" fill="none">
+                        <!-- Link 1 -->
+                        <path d="M 62 25 L 72 22 A 3 3 0 0 1 74 28 L 64 31 A 3 3 0 0 1 62 25 Z" />
+                        <!-- Link 2 -->
+                        <path d="M 69 23 L 79 20 A 3 3 0 0 1 81 26 L 71 29 A 3 3 0 0 1 69 23 Z" />
+                        <!-- Link 3 -->
+                        <path d="M 76 21 L 86 18 A 3 3 0 0 1 88 24 L 78 27 A 3 3 0 0 1 76 21 Z" />
+                    </g>
+
+                    <!-- Connection 2: Orange Thread from Chain to 'T' -->
+                    <path d="M 86 21 C 92 20, 92 18, 98 18" stroke="var(--secondary)" stroke-width="2" fill="none" stroke-linecap="round" />
+
+                    <!-- Text: Thread -->
+                    <text x="100" y="35" font-family="'Playfair Display', serif" font-weight="800" font-size="38" fill="var(--text-main)">Thread</text>
+                </svg>
+            </a>
+            <nav class="nav-links">
+                <a href="#approach">Approach</a>
+                <a href="#services">Services</a>
+                <a href="mailto:hello@rethread.io" class="cta-button">Partner With Us</a>
+            </nav>
+        </header>
+
+        <section class="hero">
+            <h1>Weaving Strategy <br><span>Into Software.</span></h1>
+            <p class="lead">
+                Fragmented workflows stifle growth. We identify legacy debt in mid-market organizations and <strong>re-thread</strong> them into seamless, data-driven systems.
+            </p>
+        </section>
+
+        <section id="services" class="services">
+            <span class="section-title">Our Expertise</span>
+            
+            <div class="service-row">
+                <h3>System <br>Re-Architecture</h3>
+                <div class="service-desc">
+                    <p>We don't just patch holes; we rebuild the fabric of your operations. Replacing disjointed legacy software (like Hudson or manual sheets) with unified, custom platforms.</p>
+                    <ul class="service-list">
+                        <li>Legacy Migration</li>
+                        <li>Workflow Automation</li>
+                        <li>Custom ERP/CRM</li>
+                        <li>Dispatch & Logistics</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="service-row">
+                <h3>Data-Driven <br>Validation</h3>
+                <div class="service-desc">
+                    <p>Software is expensive; mistakes are costlier. We use rigorous research and rapid prototyping to validate ROI before a single line of production code is written.</p>
+                    <ul class="service-list">
+                        <li>Market Research</li>
+                        <li>High-Fidelity Prototyping</li>
+                        <li>User Testing</li>
+                        <li>ROI Modeling</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <section id="approach" class="methodology">
+        <div class="container">
+            <span class="section-title" style="color: var(--secondary);">The ReThread Method</span>
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 3rem; margin: 1rem 0 3rem;">Precision over pace.</h2>
+            
+            <div class="method-grid">
+                <div class="method-item">
+                    <h4>01. Diagnose</h4>
+                    <p>We analyze your operational data to find the "invisible" costs—inefficient routing, manual data entry, and lost revenue.</p>
+                </div>
+                <div class="method-item">
+                    <h4>02. Validate</h4>
+                    <p>We build interactive mockups of the proposed solution first. You see exactly what you're buying before building begins.</p>
+                </div>
+                <div class="method-item">
+                    <h4>03. Thread</h4>
+                    <p>We engineer the final solution, integrating it seamlessly into your existing business fabric without disrupting operations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <footer>
+            <p>&copy; 2026 ReThread. Strategic Software for the Mid-Market.</p>
+        </footer>
+    </div>
+
+</body>
+</html>
