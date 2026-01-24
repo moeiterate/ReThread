@@ -1,1 +1,69 @@
-{}
+{
+  "documentTitle": "Draft Internal Strategy, Planning & Operations Document",
+  "version": "Internal OS v1.0",
+  "updatedDate": "Updated Jan 2026",
+  "sections": [
+    {
+      "id": "hero-1",
+      "type": "hero",
+      "title": "Weaving Strategy",
+      "subtitle": "Into Software.",
+      "content": "We identify fragmented workflows in mid-market and enterprise organizations and re-thread them into seamless, data-driven systems. We replace legacy debt with custom, owned solutions—but only after rigorous validation. test"
+    },
+    {
+      "id": "tenets-1",
+      "type": "tenets",
+      "title": "Organizational Tenets (DRAFT)",
+      "content": "",
+      "items": [
+        {
+          "id": "tenet-1",
+          "title": "Consulting Before Coding",
+          "description": "We are strategic partners to $1M+ revenue organizations. Code is a tool, not the product. We value impact over hours."
+        },
+        {
+          "id": "tenet-2",
+          "title": "Validate, Then Build",
+          "description": "We never build \"speculative\" products. Mockups sell the vision; engineering starts only after the contract is signed."
+        },
+        {
+          "id": "tenet-3",
+          "title": "Data Over Intuition",
+          "description": "We quantify the pain (e.g., \"$10k/mo lost\") before pitching. Research is our spearhead for acquisition."
+        }
+      ]
+    },
+    {
+      "id": "sprint-1",
+      "type": "sprint-cycle",
+      "title": "The 2-Week Sprint Cycle",
+      "content": "",
+      "items": [
+        {
+          "id": "sprint-1",
+          "label": "Phase 1",
+          "title": "Intake & Research",
+          "description": "Anytime an idea strikes, it goes to the Backlog. Before a Sprint starts, we conduct market research to assess viability."
+        },
+        {
+          "id": "sprint-2",
+          "label": "Week 1",
+          "title": "Build & Prep",
+          "description": "Monday Sprint Start: Select top backlog item. Create \"Demo First\" assets. Rebuild prospect's site/app as a high-fidelity mockup."
+        },
+        {
+          "id": "sprint-3",
+          "label": "Week 2",
+          "title": "Outreach & Execution",
+          "description": "\"I built this for you.\" Cold outreach with assets. Goal: Book demo meetings to validate interest."
+        },
+        {
+          "id": "sprint-4",
+          "label": "Review",
+          "title": "Retro & Pivot",
+          "description": "Friday Wk 2: Analyze response data. If valid → Contract. If invalid → Kill. Decide topic for Sprint 2."
+        }
+      ]
+    }
+  ]
+}
