@@ -17,6 +17,40 @@ export const getGitHubToken = (): string | null => {
   return import.meta.env.VITE_GITHUB_TOKEN || null;
 };
 
+// UTF-8 safe base64 encoding
+const encodeBase64 = (str: string): string => {
+  try {
+    // Use TextEncoder for proper UTF-8 encoding
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(str);
+    // Convert bytes to binary string
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  } catch (e) {
+    // Fallback for older browsers
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+};
+
+// UTF-8 safe base64 decoding
+const decodeBase64 = (str: string): string => {
+  try {
+    const binary = atob(str);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    const decoder = new TextDecoder();
+    return decoder.decode(bytes);
+  } catch (e) {
+    // Fallback for older browsers
+    return decodeURIComponent(escape(atob(str)));
+  }
+};
+
 // Read dashboard data from GitHub
 export const readDashboardFromGitHub = async (config?: GitHubConfig): Promise<any> => {
   const token = config?.token || getGitHubToken();
@@ -48,7 +82,7 @@ export const readDashboardFromGitHub = async (config?: GitHubConfig): Promise<an
     }
 
     const data = await response.json();
-    const content = atob(data.content.replace(/\n/g, ''));
+    const content = decodeBase64(data.content.replace(/\n/g, ''));
     return JSON.parse(content);
   } catch (error) {
     console.error('Failed to read from GitHub:', error);
@@ -91,8 +125,9 @@ export const writeDashboardToGitHub = async (
       // File doesn't exist, that's fine - we'll create it
     }
 
-    // Encode content to base64
-    const content = btoa(JSON.stringify(data, null, 2));
+    // Encode content to base64 (UTF-8 safe)
+    const jsonString = JSON.stringify(data, null, 2);
+    const content = encodeBase64(jsonString);
 
     // Create or update file
     const response = await fetch(
