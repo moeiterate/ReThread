@@ -85,7 +85,8 @@ export const Dashboard = () => {
         setLoading(true);
         const saved = await readDashboardFromGitHub();
         if (saved) {
-          setData(saved);
+          // Merge saved data with defaults to ensure all fields exist
+          setData({ ...defaultData, ...saved });
         } else {
           // No saved data, use defaults
           setData(defaultData);
@@ -96,10 +97,14 @@ export const Dashboard = () => {
         const localSaved = localStorage.getItem('dashboard-data');
         if (localSaved) {
           try {
-            setData(JSON.parse(localSaved));
+            const parsed = JSON.parse(localSaved);
+            // Merge with defaults to ensure all fields exist
+            setData({ ...defaultData, ...parsed });
           } catch (e) {
             setData(defaultData);
           }
+        } else {
+          setData(defaultData);
         }
         setError(err.message || 'Failed to load from GitHub. Using local data.');
       } finally {
@@ -348,14 +353,14 @@ export const Dashboard = () => {
               {data.heroTitle} <br /><span className="text-[var(--secondary)] italic">{data.heroSubtitle}</span>
             </h1>
             <p className="text-2xl text-[var(--text-muted)] max-w-3xl leading-relaxed font-light">
-              {data.heroDescription.includes('re-thread') ? (
+              {data.heroDescription && data.heroDescription.includes('re-thread') ? (
                 <>
                   {data.heroDescription.split('re-thread')[0]}
                   <strong>re-thread</strong>
                   {data.heroDescription.split('re-thread')[1]}
                 </>
               ) : (
-                data.heroDescription
+                data.heroDescription || ''
               )}
             </p>
           </>
