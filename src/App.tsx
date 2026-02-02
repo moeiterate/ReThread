@@ -3,6 +3,7 @@ import { Layout } from './components/Layout'
 import { Dashboard } from './pages/Dashboard'
 import { Roadmap } from './pages/Roadmap'
 import { Backlog } from './pages/Backlog'
+import { Sprints } from './pages/Sprints'
 import { Communications } from './pages/Communications'
 import { TemplatesIndex } from './templates/TemplatesIndex'
 import { SaaSModern } from './templates/SaaSModern'
@@ -16,6 +17,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/roadmap" element={<Roadmap />} />
+          <Route path="/sprints" element={<Sprints />} />
           <Route path="/backlog" element={<Backlog />} />
           <Route path="/communications" element={<Communications />} />
         </Route>

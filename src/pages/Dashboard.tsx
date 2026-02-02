@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Edit2, Save, X, AlertCircle, CheckCircle2, Plus, Trash2 } from 'lucide-react';
+import { Edit2, Save, X, AlertCircle, CheckCircle2, Plus, Trash2, ChevronRight } from 'lucide-react';
 import { readDashboardFromGitHub, writeDashboardToGitHub, getGitHubToken } from '../services/github';
 
 type SectionType = 'hero' | 'text' | 'tenets' | 'sprint-cycle' | 'custom';
@@ -698,6 +698,94 @@ export const Dashboard = () => {
           )}
         </section>
       ))}
+
+      {/* Sprint Settings Section */}
+      <section className="border-t-2 border-[var(--text-main)] pt-12 mt-24">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-serif text-2xl md:text-3xl font-medium">Sprint Cycle Settings</h2>
+          <a 
+            href="/backlog"
+            className="text-sm text-[var(--primary)] hover:underline flex items-center gap-2"
+          >
+            View Active Sprint
+            <ChevronRight className="w-4 h-4" />
+          </a>
+        </div>
+        <p className="text-[var(--text-muted)] mb-8 max-w-3xl">
+          Configure role rotation and track sprint progress. These settings sync with the Active Sprint page.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Week A Roles */}
+          <div className="border border-[var(--line-color)] rounded-xl p-6">
+            <h3 className="font-bold mb-4 text-lg">Week A: Discovery</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                  Week Lead
+                </label>
+                <input
+                  type="text"
+                  defaultValue="Moaz"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  placeholder="Lead name"
+                  disabled={!isEditing}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                  Challenger
+                </label>
+                <input
+                  type="text"
+                  defaultValue="Ahmad"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  placeholder="Challenger name"
+                  disabled={!isEditing}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Week B Roles */}
+          <div className="border border-[var(--line-color)] rounded-xl p-6">
+            <h3 className="font-bold mb-4 text-lg">Week B: Build & Release</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                  Week Lead
+                </label>
+                <input
+                  type="text"
+                  defaultValue="Ahmad"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  placeholder="Lead name"
+                  disabled={!isEditing}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                  Challenger
+                </label>
+                <input
+                  type="text"
+                  defaultValue="Moaz"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  placeholder="Challenger name"
+                  disabled={!isEditing}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 p-4 bg-blue-50 border-l-4 border-[var(--primary)] rounded">
+          <p className="text-sm text-gray-700">
+            <strong>Note:</strong> Role assignments and sprint data are currently stored locally in your browser. 
+            GitHub sync for sprint settings will be added in a future update.
+          </p>
+        </div>
+      </section>
 
       <footer className="text-center text-xs text-[var(--text-muted)] uppercase tracking-widest pt-24 pb-12">
         ReThread © 2026 Strategy Document

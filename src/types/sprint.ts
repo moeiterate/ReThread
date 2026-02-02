@@ -1,0 +1,279 @@
+// Sprint cycle types and constants
+
+export type WeekType = 'A' | 'B';
+
+export interface PhaseChecklist {
+  id: string;
+  label: string;
+}
+
+export interface Phase {
+  id: string;
+  week: WeekType;
+  num: number;
+  title: string;
+  timebox: string;
+  purpose: string;
+  ownerHint: string;
+  tags: string[];
+  outputs: string[];
+  exitCriteria: string[];
+  checklist: PhaseChecklist[];
+}
+
+export interface RoleAssignment {
+  lead: string;
+  challenger: string;
+}
+
+export interface SprintRotation {
+  weekA: RoleAssignment;
+  weekB: RoleAssignment;
+}
+
+export interface ChecklistState {
+  [phaseId: string]: {
+    [checklistId: string]: boolean;
+  };
+}
+
+export interface PhaseNotes {
+  [phaseId: string]: string;
+}
+
+export interface SprintConfig {
+  currentPhase: number;
+  sprintStartDate: string;
+  rotation: SprintRotation;
+  checklistState: ChecklistState;
+  phaseNotes: PhaseNotes;
+}
+
+export const PHASES: Phase[] = [
+  {
+    id: 'p1',
+    week: 'A',
+    num: 1,
+    title: 'LLM Research & Problem Narrowing',
+    timebox: 'Days 1-2',
+    purpose: 'Identify credible, specific SMB problems using LLM research tools before talking to humans.',
+    ownerHint: 'Week Lead (Support: Challenger)',
+    tags: ['research', 'segmentation', 'hypotheses'],
+    outputs: [
+      'Defined SMB segment (industry + size + operational context)',
+      '2-3 candidate problems (observable + operational)',
+      'Initial root-cause hypotheses',
+    ],
+    exitCriteria: [
+      'Problems are specific and testable (not abstract)',
+      'Challenger agrees they are plausible',
+    ],
+    checklist: [
+      { id: 'c1', label: 'Segment defined (industry/size/context)' },
+      { id: 'c2', label: '3 candidate problems written as symptoms' },
+      { id: 'c3', label: 'Hypotheses noted (why it happens)' },
+      { id: 'c4', label: 'Scope guardrails stated (what we will not solve)' },
+    ],
+  },
+  {
+    id: 'p2',
+    week: 'A',
+    num: 2,
+    title: 'Public Research Share (Hypothesis Stage)',
+    timebox: 'Day 3',
+    purpose: 'Publish a short hypothesis to invite correction, discussion, and early leads (no selling).',
+    ownerHint: 'Week Lead (Support: Challenger as editor)',
+    tags: ['publish', 'signal', 'feedback'],
+    outputs: [
+      'One public artifact (post, bullets, diagram, or short note)',
+      'Explicit questions for practitioners',
+      'Clear "we might be wrong" framing',
+    ],
+    exitCriteria: [
+      'Artifact is understandable by practitioners',
+      'No product claims, no CTA to hire',
+    ],
+    checklist: [
+      { id: 'c1', label: '1-page public post drafted' },
+      { id: 'c2', label: '3 questions included for feedback' },
+      { id: 'c3', label: 'No selling language' },
+      { id: 'c4', label: 'Distribution plan (3 places)' },
+    ],
+  },
+  {
+    id: 'p3',
+    week: 'A',
+    num: 3,
+    title: 'Ground Truth Validation',
+    timebox: 'Days 4-5',
+    purpose: 'Confirm the problem exists with real operators; decide to kill or commit.',
+    ownerHint: 'Week Lead (Support: Challenger)',
+    tags: ['interviews', 'validation', 'decision'],
+    outputs: [
+      '1-3 operator conversations (notes captured)',
+      'Validated problem statement OR kill decision',
+      'Top blockers + language used by operators',
+    ],
+    exitCriteria: [
+      'At least one credible operator confirms the pain',
+      'Decision Gate: pick ONE problem or kill',
+    ],
+    checklist: [
+      { id: 'c1', label: '2 conversations scheduled' },
+      { id: 'c2', label: 'Interview notes captured' },
+      { id: 'c3', label: 'Problem statement rewritten in operator language' },
+      { id: 'c4', label: 'Decision Gate completed (kill or pick one)' },
+    ],
+  },
+  {
+    id: 'p4',
+    week: 'B',
+    num: 4,
+    title: 'Problem Lock & Solution Design',
+    timebox: 'Days 6-7',
+    purpose: 'Define exactly what will be built and what will not be built; freeze scope.',
+    ownerHint: 'Week Lead (Challenger enforces scope)',
+    tags: ['spec', 'design', 'freeze'],
+    outputs: [
+      'Final Problem Spec (1 page)',
+      'Solution Spec (1 page) with workflow + data model',
+      '"V1 is done when..." checklist',
+    ],
+    exitCriteria: [
+      'Specs approved by both',
+      'Scope frozen (no new features in Week B)',
+    ],
+    checklist: [
+      { id: 'c1', label: 'Problem Spec complete' },
+      { id: 'c2', label: 'Solution Spec complete' },
+      { id: 'c3', label: 'Non-goals explicit' },
+      { id: 'c4', label: 'Scope freeze declared' },
+    ],
+  },
+  {
+    id: 'p5',
+    week: 'B',
+    num: 5,
+    title: 'Build the Opinionated Product',
+    timebox: 'Days 8-11',
+    purpose: 'Ship a real reference product for one workflow. Must demo end-to-end.',
+    ownerHint: 'Week Lead (Support: Challenger)',
+    tags: ['build', 'open-source', 'reference'],
+    outputs: [
+      'Working end-to-end system (happy path)',
+      'Seed/demo data',
+      'Setup instructions + README (who it is for / not for)',
+    ],
+    exitCriteria: [
+      'Demoable in <30 minutes',
+      'README clearly states boundaries',
+    ],
+    checklist: [
+      { id: 'c1', label: 'Happy path implemented' },
+      { id: 'c2', label: 'Seed data + demo script' },
+      { id: 'c3', label: 'Setup steps documented' },
+      { id: 'c4', label: 'README includes limits + non-goals' },
+    ],
+  },
+  {
+    id: 'p6',
+    week: 'B',
+    num: 6,
+    title: 'Public Release & Solution Validation',
+    timebox: 'Days 12-13',
+    purpose: 'Validate whether operators would switch; collect blockers for next cycle.',
+    ownerHint: 'Week Lead (Support: Challenger)',
+    tags: ['release', 'feedback', 'iterate'],
+    outputs: [
+      '3-6 minute demo video',
+      'Release post explaining problem, solution, limitations',
+      'Structured feedback captured (blockers)',
+    ],
+    exitCriteria: [
+      'At least 5 practitioner reactions (comments/DMs) or 2 deep threads',
+      'Blockers list produced',
+    ],
+    checklist: [
+      { id: 'c1', label: 'Demo video recorded' },
+      { id: 'c2', label: 'Repo published with tags/releases' },
+      { id: 'c3', label: 'Release post published' },
+      { id: 'c4', label: 'Feedback captured in a log' },
+    ],
+  },
+  {
+    id: 'p7',
+    week: 'B',
+    num: 7,
+    title: 'Commercial Engagements',
+    timebox: 'Day 14',
+    purpose: 'Convert engaged interest into paid setup/customization/ops without cold pitching.',
+    ownerHint: 'Week Lead (Support: Challenger)',
+    tags: ['offer', 'setup', 'pilots'],
+    outputs: [
+      'Pick ONE offer type: Setup OR Customization OR Ops',
+      'Follow-ups only to engaged leads',
+      'Pilot criteria + next steps',
+    ],
+    exitCriteria: [
+      'Offer selected and messaged consistently',
+      'At least 3 qualified conversations scheduled or 1 pilot agreed',
+    ],
+    checklist: [
+      { id: 'c1', label: 'Offer type selected' },
+      { id: 'c2', label: 'Message template finalized' },
+      { id: 'c3', label: 'Engaged leads list created' },
+      { id: 'c4', label: 'Calls scheduled / pilot defined' },
+    ],
+  },
+];
+
+export const DEFAULT_SPRINT_CONFIG: SprintConfig = {
+  currentPhase: 1,
+  sprintStartDate: new Date().toISOString().split('T')[0],
+  rotation: {
+    weekA: { lead: 'Moaz', challenger: 'Ahmad' },
+    weekB: { lead: 'Ahmad', challenger: 'Moaz' },
+  },
+  checklistState: {},
+  phaseNotes: {},
+};
+
+export const TEMPLATES = {
+  problemSpec: {
+    title: 'Problem Spec (1 page)',
+    description: 'Used in Phase 1 (draft) and Phase 4 (final).',
+    fields: [
+      'Segment (industry + size + context)',
+      'Persona (role + responsibilities)',
+      'Observable symptoms (what is happening)',
+      'Current workaround/tools',
+      'Why it hurts (money/time/risk)',
+      'Success criteria (measurable)',
+      'Non-goals (explicitly out of scope)',
+    ],
+  },
+  solutionSpec: {
+    title: 'Solution Spec (1 page)',
+    description: 'Used in Phase 4 to freeze scope.',
+    fields: [
+      'Opinionated workflow (happy path steps)',
+      'Minimal data model (entities)',
+      'UX surfaces (screens/pages)',
+      'Automations/integrations (if any)',
+      'Constraints (what we refuse to build in V1)',
+      'V1 done-when checklist',
+    ],
+  },
+  releasePost: {
+    title: 'Release Post Outline',
+    description: 'Used in Phase 6.',
+    fields: [
+      'The problem in operator language',
+      'What fails with current tools',
+      'What the product does (one workflow)',
+      'What it does NOT do',
+      'Demo link + repo link',
+      'The validation question: "What would stop you from using this?"',
+    ],
+  },
+};
