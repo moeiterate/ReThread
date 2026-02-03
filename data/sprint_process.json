@@ -13,9 +13,9 @@
       "id": "p1",
       "num": 1,
       "week": "A",
-      "title": "LLM Research",
+      "title": "Hypothesis Research",
       "timebox": "Days 1-2",
-      "purpose": "Identify credible, specific SMB problems using LLM research tools before talking to humans.",
+      "purpose": "Identify credible, specific SMB problems through research (data analysis, scraping, LLM tools, interviews) before committing to a direction.",
       "ownerHint": "Week Lead (Support: Challenger)",
       "tags": ["research", "segmentation", "hypotheses"],
       "outputs": [
@@ -182,6 +182,36 @@
         { "id": "c2", "label": "Message template finalized" },
         { "id": "c3", "label": "Engaged leads list created" },
         { "id": "c4", "label": "Calls scheduled / pilot defined" }
+      ]
+    },
+    {
+      "id": "p8",
+      "num": 8,
+      "week": "B",
+      "title": "Knowledge Freeze",
+      "timebox": "30–45 min",
+      "purpose": "Make the sprint compound by capturing what was learned; close the cycle and prepare for next iteration.",
+      "ownerHint": "Both (joint reflection)",
+      "tags": ["reflection", "learning", "archive"],
+      "outputs": [
+        "1-page reflection document",
+        "Sprint notes archived",
+        "Learned insights documented for future reference"
+      ],
+      "exitCriteria": [
+        "All key learnings documented",
+        "Repo and notes archived",
+        "Team agrees on what to test next cycle"
+      ],
+      "checklist": [
+        { "id": "c1", "label": "What was confirmed (validated assumptions)" },
+        { "id": "c2", "label": "What was wrong (invalidated assumptions)" },
+        { "id": "c3", "label": "What generalized (broader insights)" },
+        { "id": "c4", "label": "What didn't (failed experiments / blockers)" },
+        { "id": "c5", "label": "What to test next (prioritized experiments)" },
+        { "id": "c6", "label": "Repo archived with tags" },
+        { "id": "c7", "label": "Sprint notes consolidated and stored" },
+        { "id": "c8", "label": "Team alignment: next sprint hypothesis ready" }
       ]
     }
   ],
