@@ -5,8 +5,6 @@ import {
   FileText, 
   User, 
   Shield,
-  ArrowLeft,
-  ArrowRight,
   X,
   Search,
   Share2,
@@ -304,14 +302,6 @@ export const Sprints = () => {
 
   const currentPhase = PHASES.find(p => p.num === config.currentPhase) || PHASES[0];
   const currentWeek = currentPhase.week;
-  const currentRoles = currentWeek === 'A' ? config.rotation.weekA : config.rotation.weekB;
-
-  // Calculate completion percentage
-  const totalChecks = currentPhase.checklist.length;
-  const completedChecks = currentPhase.checklist.filter(
-    c => config.checklistState[currentPhase.id]?.[c.id]
-  ).length;
-  const completionPct = totalChecks > 0 ? Math.round((completedChecks / totalChecks) * 100) : 0;
 
   // Get week A and B phases for progress bars
   const weekAPhases = PHASES.filter(p => p.week === 'A');
