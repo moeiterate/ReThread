@@ -7,7 +7,14 @@ import {
   Shield,
   ArrowLeft,
   ArrowRight,
-  X
+  X,
+  Search,
+  Share2,
+  CheckSquare,
+  Layout,
+  Zap,
+  Rocket,
+  Briefcase
 } from 'lucide-react';
 
 // Types
@@ -43,8 +50,7 @@ interface SprintConfig {
     weekB: RoleAssignment;
   };
   checklistState: { [phaseId: string]: { [checklistId: string]: boolean } };
-  phaseNotes: { [phaseId: string]: string };
-}
+} 
 
 // Phase data
 const PHASES: Phase[] = [
@@ -52,7 +58,7 @@ const PHASES: Phase[] = [
     id: 'p1',
     week: 'A',
     num: 1,
-    title: 'LLM Research & Problem Narrowing',
+    title: 'LLM Research',
     timebox: 'Days 1-2',
     purpose: 'Identify credible, specific SMB problems using LLM research tools before talking to humans.',
     ownerHint: 'Week Lead (Support: Challenger)',
@@ -77,7 +83,7 @@ const PHASES: Phase[] = [
     id: 'p2',
     week: 'A',
     num: 2,
-    title: 'Public Research Share (Hypothesis Stage)',
+    title: 'Public Research Share',
     timebox: 'Day 3',
     purpose: 'Publish a short hypothesis to invite correction, discussion, and early leads (no selling).',
     ownerHint: 'Week Lead (Support: Challenger as editor)',
@@ -102,7 +108,7 @@ const PHASES: Phase[] = [
     id: 'p3',
     week: 'A',
     num: 3,
-    title: 'Ground Truth Validation',
+    title: 'Validation',
     timebox: 'Days 4-5',
     purpose: 'Confirm the problem exists with real operators; decide to kill or commit.',
     ownerHint: 'Week Lead (Support: Challenger)',
@@ -127,7 +133,7 @@ const PHASES: Phase[] = [
     id: 'p4',
     week: 'B',
     num: 4,
-    title: 'Problem Lock & Solution Design',
+    title: 'Problem Lock & Design',
     timebox: 'Days 6-7',
     purpose: 'Define exactly what will be built and what will not be built; freeze scope.',
     ownerHint: 'Week Lead (Challenger enforces scope)',
@@ -152,7 +158,7 @@ const PHASES: Phase[] = [
     id: 'p5',
     week: 'B',
     num: 5,
-    title: 'Build the Opinionated Product',
+    title: 'Build the Solution',
     timebox: 'Days 8-11',
     purpose: 'Ship a real reference product for one workflow. Must demo end-to-end.',
     ownerHint: 'Week Lead (Support: Challenger)',
@@ -177,7 +183,7 @@ const PHASES: Phase[] = [
     id: 'p6',
     week: 'B',
     num: 6,
-    title: 'Public Release & Solution Validation',
+    title: 'Public Release',
     timebox: 'Days 12-13',
     purpose: 'Validate whether operators would switch; collect blockers for next cycle.',
     ownerHint: 'Week Lead (Support: Challenger)',
@@ -202,7 +208,7 @@ const PHASES: Phase[] = [
     id: 'p7',
     week: 'B',
     num: 7,
-    title: 'Commercial Engagements',
+    title: 'Commercial',
     timebox: 'Day 14',
     purpose: 'Convert engaged interest into paid setup/customization/ops without cold pitching.',
     ownerHint: 'Week Lead (Support: Challenger)',
@@ -233,7 +239,6 @@ const DEFAULT_SPRINT_CONFIG: SprintConfig = {
     weekB: { lead: 'Ahmad', challenger: 'Moaz' },
   },
   checklistState: {},
-  phaseNotes: {},
 };
 
 const TEMPLATES = {
@@ -278,10 +283,7 @@ const TEMPLATES = {
 
 export const Sprints = () => {
   const [config, setConfig] = useState<SprintConfig>(DEFAULT_SPRINT_CONFIG);
-  const [showPhaseDetail, setShowPhaseDetail] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
-  const [localChecklistState, setLocalChecklistState] = useState<{ [key: string]: boolean }>({});
-  const [phaseNote, setPhaseNote] = useState('');
 
   // Load config from localStorage on mount
   useEffect(() => {
@@ -327,46 +329,6 @@ export const Sprints = () => {
   const weekAProgress = calculateWeekProgress(weekAPhases);
   const weekBProgress = calculateWeekProgress(weekBPhases);
 
-  const handlePhaseChange = (direction: 'prev' | 'next') => {
-    const newPhaseNum = direction === 'next' 
-      ? Math.min(config.currentPhase + 1, 7)
-      : Math.max(config.currentPhase - 1, 1);
-    
-    setConfig({ ...config, currentPhase: newPhaseNum });
-  };
-
-  const handleOpenPhaseDetail = () => {
-    setShowPhaseDetail(true);
-    setLocalChecklistState(config.checklistState[currentPhase.id] || {});
-    setPhaseNote(config.phaseNotes[currentPhase.id] || '');
-  };
-
-  const handleSavePhaseDetail = () => {
-    setConfig({
-      ...config,
-      checklistState: {
-        ...config.checklistState,
-        [currentPhase.id]: localChecklistState,
-      },
-      phaseNotes: {
-        ...config.phaseNotes,
-        [currentPhase.id]: phaseNote,
-      },
-    });
-    setShowPhaseDetail(false);
-  };
-
-  const handleClosePhaseDetail = () => {
-    setShowPhaseDetail(false);
-  };
-
-  const toggleChecklistItem = (checkId: string) => {
-    setLocalChecklistState({
-      ...localChecklistState,
-      [checkId]: !localChecklistState[checkId],
-    });
-  };
-
   return (
     <div className="min-h-[80vh] animate-in fade-in duration-500">
       {/* Header */}
@@ -377,11 +339,147 @@ export const Sprints = () => {
             2-Week Operating Cycle
           </span>
         </div>
-        <h1 className="font-serif text-4xl md:text-5xl mb-4">Active Sprint</h1>
-        <p className="text-lg text-[var(--text-muted)] max-w-2xl">
-          Navigate phases one at a time. Each phase has clear outputs, exit criteria, and checklists to keep momentum focused.
+        <h1 className="font-serif text-4xl md:text-5xl mb-4">Sprint Cycle Navigator</h1>
+        <p className="text-lg text-[var(--text-muted)] max-w-3xl">
+          A structured 14-day cycle alternating between discovery validation (Week A) and execution (Week B). 
+          Public-first approach with clear decision gates to kill bad ideas fast and double down on validated opportunities.
         </p>
       </div>
+
+      {/* Visual Process Flow */}
+      <div className="mb-8 border-2 border-[var(--line-color)] rounded-2xl p-8 bg-white">        
+        {/* Week A & B Headers */}
+        <div className="grid grid-cols-2 gap-8 mb-6">
+          <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-transparent rounded-xl border-2 border-blue-200">
+            <h3 className="font-bold text-lg mb-1">Week A: Discovery</h3>
+            <p className="text-sm text-[var(--text-muted)]">Research → Validate → Decide</p>
+          </div>
+          <div className="text-center p-4 bg-gradient-to-br from-green-50 to-transparent rounded-xl border-2 border-green-200">
+            <h3 className="font-bold text-lg mb-1">Week B: Execution</h3>
+            <p className="text-sm text-[var(--text-muted)]">Design → Build → Release → Convert</p>
+          </div>
+        </div>
+
+        {/* Phase Flow Visualization */}
+        <div className="relative">
+          {/* Connection Line */}
+          <div className="absolute top-12 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-300 via-purple-300 to-green-300 hidden md:block" 
+               style={{ zIndex: 0 }}></div>
+          
+          {/* Phases */}
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-3 relative" style={{ zIndex: 1 }}>
+            {PHASES.map((phase) => {
+              const PhaseIcon = {
+                1: Search,
+                2: Share2,
+                3: CheckSquare,
+                4: Layout,
+                5: Zap,
+                6: Rocket,
+                7: Briefcase
+              }[phase.num] || Search;
+
+              return (
+                <div key={phase.id} className="flex flex-col items-center">
+                  <div
+                    className={`w-16 h-16 rounded-full flex items-center justify-center transition-all mb-2 ${
+                      phase.week === 'A'
+                        ? 'bg-blue-100 border-2 border-blue-300'
+                        : 'bg-green-100 border-2 border-green-300'
+                    }`}
+                  >
+                    <PhaseIcon className={`w-7 h-7 ${
+                      phase.week === 'A' ? 'text-blue-600' : 'text-green-600'
+                    }`} />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] font-bold text-[var(--text-muted)] mb-1">
+                      {`Phase ${phase.num}`}
+                    </div>
+                    <div className="text-xs font-medium leading-tight max-w-[140px] whitespace-normal break-words">
+                      {phase.title}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="mt-8 pt-6 border-t border-gray-200 flex items-center justify-center gap-6 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-300"></div>
+            <span className="text-[var(--text-muted)]">Week A: Discovery</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-green-100 border-2 border-green-300"></div>
+            <span className="text-[var(--text-muted)]">Week B: Execution</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Methodology Overview - Collapsible */}
+      <details className="mb-8 border-2 border-[var(--primary)] rounded-xl overflow-hidden">
+        <summary className="cursor-pointer bg-gradient-to-r from-blue-50 to-transparent p-5 font-bold text-lg flex items-center justify-between hover:bg-blue-100/50 transition-colors">
+          <span className="flex items-center gap-3">
+            <span className="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-sm font-bold">?</span>
+            Why This Process Works
+          </span>
+          <ChevronRight className="w-5 h-5 transform transition-transform" />
+        </summary>
+        <div className="p-6 bg-white space-y-4 border-t border-[var(--primary)]/20">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <h3 className="font-bold text-[var(--primary)] flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-xs">1</span>
+                Public Research First (Days 1-3)
+              </h3>
+              <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                Unlike traditional stealth mode, sharing early hypotheses publicly serves three purposes: (1) attracts corrections from practitioners who know the domain better, (2) generates inbound leads who self-identify with the problem, and (3) builds credibility as domain experts before pitching solutions.
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <h3 className="font-bold text-[var(--primary)] flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-xs">2</span>
+                Mandatory Decision Gate (Day 5)
+              </h3>
+              <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                Week A ends with a binary choice: kill or commit. This prevents the "we'll keep researching" trap. Validation requires at least one credible operator confirming the pain. No validation = no Week B. This gate forces honesty about whether the problem is real.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-bold text-[var(--secondary)] flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-[var(--secondary)] text-white flex items-center justify-center text-xs">3</span>
+                Scope Freeze Before Build (Days 6-7)
+              </h3>
+              <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                Phase 4 locks the problem spec and solution design. Once Week B starts, no new features are allowed. This constraint forces clarity: what's V1 vs. what's out of scope. The Challenger role enforces this boundary—if scope creeps, they can halt the sprint.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-bold text-[var(--secondary)] flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-[var(--secondary)] text-white flex items-center justify-center text-xs">4</span>
+                Demo-First, Not Code-First (Days 8-13)
+              </h3>
+              <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                The goal is a working demo for one opinionated workflow—not a generic platform. Constraints are explicit in the README. This approach validates willingness to switch tools (not hypothetical interest). Feedback from this release seeds the next cycle's backlog.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+            <p className="text-sm font-medium text-yellow-900 mb-2">🎯 Key Success Metric</p>
+            <p className="text-sm text-yellow-800">
+              The cycle succeeds if it produces <strong>one clear kill decision OR one validated product release every 2 weeks</strong>. 
+              Failure mode: spending &gt;2 weeks on research without shipping or killing. Role rotation prevents one person's attachment from stalling progress.
+            </p>
+          </div>
+        </div>
+      </details>
 
       {/* Week Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -464,247 +562,227 @@ export const Sprints = () => {
         </div>
       </div>
 
-      {/* Current Phase Card */}
-      <div className="border-2 border-[var(--text-main)] rounded-2xl p-6 md:p-8 mb-6 bg-white shadow-sm">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="px-3 py-1 bg-gray-100 text-[var(--text-main)] text-xs font-bold rounded-full">
-                PHASE {currentPhase.num} of 7
-              </span>
-              <span className="text-xs text-[var(--text-muted)]">{currentPhase.timebox}</span>
-            </div>
-            <h2 className="font-serif text-3xl mb-3">{currentPhase.title}</h2>
-            <p className="text-lg text-[var(--text-muted)] leading-relaxed max-w-3xl">
-              {currentPhase.purpose}
-            </p>
-          </div>
-        </div>
-
-        {/* Role assignment */}
-        <div className="flex items-center gap-6 mb-6 p-4 bg-gray-50 rounded-xl">
-          <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-[var(--primary)]" />
-            <span className="text-sm font-medium">Lead:</span>
-            <span className="text-sm font-bold">{currentRoles.lead}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-[var(--secondary)]" />
-            <span className="text-sm font-medium">Challenger:</span>
-            <span className="text-sm font-bold">{currentRoles.challenger}</span>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Phase Progress</span>
-            <span className="text-sm font-bold">{completedChecks}/{totalChecks} complete</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div 
-              className="bg-[var(--primary)] h-3 rounded-full transition-all duration-300 flex items-center justify-end pr-2"
-              style={{ width: `${completionPct}%` }}
-            >
-              {completionPct > 10 && (
-                <span className="text-[10px] font-bold text-white">{completionPct}%</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={handleOpenPhaseDetail}
-            className="flex-1 min-w-[200px] bg-[var(--primary)] text-white px-6 py-3 rounded-full font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
-          >
-            Enter Phase Details
-            <ChevronRight className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => setShowTemplates(true)}
-            className="border-2 border-[var(--text-main)] text-[var(--text-main)] px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-gray-50 transition-colors"
-          >
-            <FileText className="w-5 h-5" />
-            Templates
-          </button>
-        </div>
-      </div>
-
-      {/* Phase Navigation */}
-      <div className="flex items-center justify-between gap-4">
-        <button
-          onClick={() => handlePhaseChange('prev')}
-          disabled={config.currentPhase === 1}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--line-color)] hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Previous Phase</span>
-        </button>
-        
-        <div className="flex gap-2">
-          {PHASES.map(p => (
+      {/* Two-Column Layout: Phases List + Details */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        {/* Left Column: All Phases */}
+        <div className="lg:col-span-4 space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-serif text-xl">All Phases</h2>
             <button
-              key={p.id}
-              onClick={() => setConfig({ ...config, currentPhase: p.num })}
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                p.num === config.currentPhase
-                  ? 'bg-[var(--primary)] text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-              title={p.title}
+              onClick={() => setShowTemplates(true)}
+              className="text-xs flex items-center gap-1 text-[var(--primary)] hover:underline"
             >
-              {p.num}
+              <FileText className="w-3 h-3" />
+              Templates
             </button>
-          ))}
-        </div>
-
-        <button
-          onClick={() => handlePhaseChange('next')}
-          disabled={config.currentPhase === 7}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--line-color)] hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <span className="text-sm font-medium">Next Phase</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Phase Detail Modal */}
-      {showPhaseDetail && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={handleClosePhaseDetail}>
-          <div 
-            className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
-              <div>
-                <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">
-                  Phase {currentPhase.num} • {currentPhase.timebox}
-                </div>
-                <h3 className="font-serif text-2xl">{currentPhase.title}</h3>
-              </div>
-              <button
-                onClick={handleClosePhaseDetail}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6 space-y-6">
-              {/* Purpose */}
-              <div className="p-4 bg-blue-50 border-l-4 border-[var(--primary)] rounded">
-                <div className="text-xs font-bold text-[var(--primary)] uppercase tracking-wider mb-1">
-                  Purpose
-                </div>
-                <p className="text-sm leading-relaxed">{currentPhase.purpose}</p>
-              </div>
-
-              {/* Owner Hint */}
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-                  Ownership
-                </div>
-                <p className="text-sm">{currentPhase.ownerHint}</p>
-              </div>
-
-              {/* Two columns: Outputs & Exit Criteria */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Outputs */}
-                <div className="border border-[var(--line-color)] rounded-xl p-5">
-                  <h4 className="font-bold mb-3 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[var(--primary)]" />
-                    Required Outputs
-                  </h4>
-                  <ul className="space-y-2">
-                    {currentPhase.outputs.map((output, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm">
-                        <span className="text-[var(--primary)] mt-1">•</span>
-                        <span className="flex-1">{output}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Exit Criteria */}
-                <div className="border border-[var(--line-color)] rounded-xl p-5">
-                  <h4 className="font-bold mb-3 flex items-center gap-2">
-                    <ChevronRight className="w-4 h-4 text-[var(--secondary)]" />
-                    Exit Criteria
-                  </h4>
-                  <ul className="space-y-2">
-                    {currentPhase.exitCriteria.map((criteria, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm">
-                        <span className="text-[var(--secondary)] mt-1">→</span>
-                        <span className="flex-1">{criteria}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Checklist */}
-              <div className="border-2 border-[var(--text-main)] rounded-xl p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-bold">Phase Checklist</h4>
-                  <span className="text-sm text-[var(--text-muted)]">
-                    {Object.values(localChecklistState).filter(Boolean).length}/{currentPhase.checklist.length}
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {currentPhase.checklist.map(item => (
-                    <label
-                      key={item.id}
-                      className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={!!localChecklistState[item.id]}
-                        onChange={() => toggleChecklistItem(item.id)}
-                        className="mt-0.5 w-5 h-5 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
-                      />
-                      <span className="flex-1 text-sm leading-snug">{item.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Phase Notes */}
-              <div className="border border-[var(--line-color)] rounded-xl p-5">
-                <h4 className="font-bold mb-3">Phase Notes</h4>
-                <p className="text-xs text-[var(--text-muted)] mb-3">
-                  Track decisions, links, blockers, and follow-ups for this phase.
-                </p>
-                <textarea
-                  value={phaseNote}
-                  onChange={(e) => setPhaseNote(e.target.value)}
-                  placeholder="e.g., Decision: Target airport transfer operators 10-20 fleet size&#10;Blockers: OTA integration, payment processing&#10;Links: [research doc]"
-                  className="w-full h-32 p-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none"
-                />
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex items-center justify-between gap-4">
-              <button
-                onClick={handleClosePhaseDetail}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSavePhaseDetail}
-                className="px-6 py-2 bg-[var(--primary)] text-white rounded-lg font-bold hover:opacity-90 transition-opacity"
-              >
-                Save & Close
-              </button>
-            </div>
           </div>
+          
+          {PHASES.map((phase) => {
+            const isActive = phase.num === config.currentPhase;
+            const phaseChecks = phase.checklist.length;
+            const phaseCompleted = phase.checklist.filter(c => config.checklistState[phase.id]?.[c.id]).length;
+            const phasePct = phaseChecks > 0 ? Math.round((phaseCompleted / phaseChecks) * 100) : 0;
+            const isComplete = phasePct === 100;
+
+            return (
+              <button
+                key={phase.id}
+                onClick={() => setConfig({ ...config, currentPhase: phase.num })}
+                className={`w-full text-left border-2 rounded-xl p-4 transition-all hover:shadow-md ${
+                  isActive 
+                    ? 'border-[var(--primary)] bg-blue-50/50 shadow-md' 
+                    : isComplete
+                    ? 'border-green-300 bg-green-50/30'
+                    : 'border-[var(--line-color)] bg-white hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                    isActive 
+                      ? 'bg-[var(--primary)] text-white' 
+                      : isComplete
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {isComplete ? <CheckCircle2 className="w-5 h-5" /> : phase.num}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-bold text-sm truncate">{phase.title}</h3>
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        phase.week === 'A' 
+                          ? 'bg-blue-100 text-blue-700' 
+                          : 'bg-green-100 text-green-700'
+                      }`}>
+                        Week {phase.week}
+                      </span>
+                      <span className="text-[10px] text-[var(--text-muted)]">{phase.timebox}</span>
+                    </div>
+                    
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
+                      <div 
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          isComplete ? 'bg-green-500' : 'bg-[var(--primary)]'
+                        }`}
+                        style={{ width: `${phasePct}%` }}
+                      />
+                    </div>
+                    
+                    <div className="text-[10px] text-[var(--text-muted)]">
+                      {phaseCompleted}/{phaseChecks} items • {phasePct}%
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
-      )}
+
+        {/* Right Column: Active Phase Details */}
+        <div className="lg:col-span-8">
+          {(() => {
+            const phase = PHASES.find(p => p.num === config.currentPhase) || PHASES[0];
+            const phaseChecks = phase.checklist.length;
+            const phaseCompleted = phase.checklist.filter(c => config.checklistState[phase.id]?.[c.id]).length;
+            const phasePct = phaseChecks > 0 ? Math.round((phaseCompleted / phaseChecks) * 100) : 0;
+
+            return (
+              <div className="border-2 border-[var(--primary)] rounded-2xl overflow-hidden bg-white">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-blue-50 to-transparent p-6 border-b border-[var(--primary)]/20">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="px-3 py-1 bg-[var(--primary)] text-white text-xs font-bold rounded-full">
+                          PHASE {phase.num} of 7
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          phase.week === 'A' 
+                            ? 'bg-blue-100 text-blue-700' 
+                            : 'bg-green-100 text-green-700'
+                        }`}>
+                          Week {phase.week} • {phase.timebox}
+                        </span>
+                      </div>
+                      <h2 className="font-serif text-3xl mb-2">{phase.title}</h2>
+                      <p className="text-base text-[var(--text-muted)] leading-relaxed">
+                        {phase.purpose}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Role Assignment */}
+                  <div className="flex items-center gap-6 p-3 bg-white rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-[var(--primary)]" />
+                      <span className="text-sm font-medium">Lead:</span>
+                      <span className="text-sm font-bold">
+                        {phase.week === 'A' ? config.rotation.weekA.lead : config.rotation.weekB.lead}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-[var(--secondary)]" />
+                      <span className="text-sm font-medium">Challenger:</span>
+                      <span className="text-sm font-bold">
+                        {phase.week === 'A' ? config.rotation.weekA.challenger : config.rotation.weekB.challenger}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Progress */}
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Phase Progress</span>
+                      <span className="text-sm font-bold">{phaseCompleted}/{phaseChecks} complete ({phasePct}%)</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div 
+                        className="bg-[var(--primary)] h-3 rounded-full transition-all duration-300"
+                        style={{ width: `${phasePct}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 space-y-6">
+                  {/* Outputs & Exit Criteria */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-bold mb-3 text-sm uppercase tracking-wide text-[var(--text-muted)] flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--primary)]" />
+                        Required Outputs
+                      </h4>
+                      <ul className="space-y-2">
+                        {phase.outputs.map((output, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm pl-6">
+                            <span className="text-[var(--primary)]">•</span>
+                            <span>{output}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold mb-3 text-sm uppercase tracking-wide text-[var(--text-muted)] flex items-center gap-2">
+                        <ChevronRight className="w-4 h-4 text-[var(--secondary)]" />
+                        Exit Criteria
+                      </h4>
+                      <ul className="space-y-2">
+                        {phase.exitCriteria.map((criteria, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm pl-6">
+                            <span className="text-[var(--secondary)]">→</span>
+                            <span>{criteria}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Checklist */}
+                  <div className="border-t pt-6">
+                    <h4 className="font-bold mb-4 text-sm uppercase tracking-wide text-[var(--text-muted)]">
+                      Phase Checklist
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {phase.checklist.map(item => (
+                        <label
+                          key={item.id}
+                          className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!!config.checklistState[phase.id]?.[item.id]}
+                            onChange={() => {
+                              setConfig({
+                                ...config,
+                                checklistState: {
+                                  ...config.checklistState,
+                                  [phase.id]: {
+                                    ...(config.checklistState[phase.id] || {}),
+                                    [item.id]: !config.checklistState[phase.id]?.[item.id],
+                                  },
+                                },
+                              });
+                            }}
+                            className="mt-0.5 w-5 h-5 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                          />
+                          <span className="flex-1 text-sm leading-snug">{item.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      </div>
 
       {/* Templates Modal */}
       {showTemplates && (
