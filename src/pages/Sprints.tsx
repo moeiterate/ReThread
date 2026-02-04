@@ -108,23 +108,23 @@ const PHASES: Phase[] = [
     num: 3,
     title: 'Validation',
     timebox: 'Days 4-5',
-    purpose: 'Confirm the problem exists with real operators; decide to kill or commit.',
+    purpose: 'Gather validation signal (data, conversations, or other); run an internal triage to decide: commit to one problem or kill.',
     ownerHint: 'Week Lead (Support: Challenger)',
-    tags: ['interviews', 'validation', 'decision'],
+    tags: ['validation', 'decision', 'triage'],
     outputs: [
-      '1-3 operator conversations (notes captured)',
-      'Validated problem statement OR kill decision',
-      'Top blockers + language used by operators',
+      'Validation output (e.g. scraped/data, one operator conversation, or other)—notes or summary captured',
+      'Internal triage conversation: review validation output and decide commit or kill',
+      'Validated problem statement OR kill decision (if kill: document why + add to backlog)',
     ],
     exitCriteria: [
-      'At least one credible operator confirms the pain',
-      'Decision Gate: pick ONE problem or kill',
+      'Internal triage completed (both cofounders)',
+      'Decision Gate: pick ONE problem and proceed to Phase 4, OR kill (document 1–2 sentences why + add card to backlog)',
     ],
     checklist: [
-      { id: 'c1', label: '2 conversations scheduled' },
-      { id: 'c2', label: 'Interview notes captured' },
-      { id: 'c3', label: 'Problem statement rewritten in operator language' },
-      { id: 'c4', label: 'Decision Gate completed (kill or pick one)' },
+      { id: 'c1', label: 'Validation output gathered (data, conversation(s), or other) and summarized' },
+      { id: 'c2', label: 'Internal triage conversation held to review validation' },
+      { id: 'c3', label: 'Decision: commit to one problem OR kill' },
+      { id: 'c4', label: 'If kill: 1–2 sentence reason documented and card added to backlog (e.g. Trello)' },
     ],
   },
   {
@@ -466,7 +466,7 @@ export const Sprints = () => {
                 Mandatory Decision Gate (Day 5)
               </h3>
               <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                Week A ends with a binary choice: kill or commit. This prevents the "we'll keep researching" trap. Validation requires at least one credible operator confirming the pain. No validation = no Week B. This gate forces honesty about whether the problem is real.
+                Week A ends with a binary choice: kill or commit. Validation output can be scraped data, one conversation, or something else—you run an internal triage (both cofounders) to decide. If you kill: document 1–2 sentences why and add a card to the backlog (e.g. Trello); next cycle starts at Phase 1. This gate prevents endless research.
               </p>
             </div>
 

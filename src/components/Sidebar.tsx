@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Map, Trello, MessageSquare, Settings, X, Zap } from 'lucide-react';
+import { LayoutDashboard, Map, Trello, MessageSquare, Settings, X, Zap, FileText } from 'lucide-react';
 
 type SidebarProps = {
   mobileOpen?: boolean;
@@ -13,6 +13,7 @@ export const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
     { to: "/sprints", icon: Zap, label: "Active Sprint" },
     { to: "/backlog", icon: Trello, label: "Backlog" },
     { to: "/communications", icon: MessageSquare, label: "Communications" },
+    { to: "/articles", icon: FileText, label: "Articles" },
   ];
 
   return (
