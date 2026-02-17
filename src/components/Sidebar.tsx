@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Map, Trello, MessageSquare, Settings, X, Zap, FileText } from 'lucide-react';
+import { LayoutDashboard, Map, Trello, MessageSquare, Settings, X, Zap, FileText, FileEdit, LogOut } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 type SidebarProps = {
   mobileOpen?: boolean;
@@ -13,6 +14,7 @@ export const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
     { to: "/sprints", icon: Zap, label: "Active Sprint" },
     { to: "/backlog", icon: Trello, label: "Backlog" },
     { to: "/communications", icon: MessageSquare, label: "Communications" },
+    { to: "/documents", icon: FileEdit, label: "Documents" },
     { to: "/articles", icon: FileText, label: "Articles" },
   ];
 
@@ -70,7 +72,7 @@ export const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-[var(--line-color)]">
+      <div className="p-4 border-t border-[var(--line-color)] space-y-1">
         <a
           href="#"
           className="flex items-center gap-3 px-4 py-3 text-[var(--text-muted)] hover:bg-gray-50 rounded-lg transition-all"
@@ -82,6 +84,17 @@ export const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
             <Settings className="w-5 h-5" />
             <span className="text-sm tracking-wide">Settings</span>
         </a>
+        
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+            onClose?.();
+          }}
+          className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="text-sm tracking-wide">Logout</span>
+        </button>
       </div>
     </div>
   );
