@@ -29,6 +29,8 @@ type Lead = {
   owner_id: string | null;
   notes: string | null;
   next_follow_up: string | null;
+  'Lead Claimed By (Ahmad or Moaz)': string | null;
+  'Engagement Status': string | null;
 };
 
 type SortField = 'name' | 'state' | 'reservation_system' | 'status' | 'next_follow_up';
@@ -154,6 +156,8 @@ function SlideOver({
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState('new');
   const [followUp, setFollowUp] = useState('');
+  const [claimedBy, setClaimedBy] = useState('');
+  const [engagementStatus, setEngagementStatus] = useState('');
   const [saving, setSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [rawOpen, setRawOpen] = useState(false);
@@ -164,6 +168,8 @@ function SlideOver({
     setNotes(lead.notes ?? '');
     setStatus(lead.status ?? 'new');
     setFollowUp(lead.next_follow_up ? lead.next_follow_up.split('T')[0] : '');
+    setClaimedBy(lead['Lead Claimed By (Ahmad or Moaz)'] ?? '');
+    setEngagementStatus(lead['Engagement Status'] ?? '');
     setSavedFlash(false);
     setRawOpen(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -176,6 +182,8 @@ function SlideOver({
       notes,
       status,
       next_follow_up: followUp ? new Date(`${followUp}T12:00:00`).toISOString() : null,
+      'Lead Claimed By (Ahmad or Moaz)': claimedBy || null,
+      'Engagement Status': engagementStatus || null,
     };
     const { error } = await supabase
       .from('national_leads')
@@ -285,6 +293,28 @@ function SlideOver({
                       type="date"
                       value={followUp}
                       onChange={e => setFollowUp(e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-1.5">Claimed By</label>
+                    <select
+                      value={claimedBy}
+                      onChange={e => setClaimedBy(e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">— unassigned —</option>
+                      <option value="Ahmad">Ahmad</option>
+                      <option value="Moaz">Moaz</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-1.5">Engagement Status</label>
+                    <input
+                      type="text"
+                      value={engagementStatus}
+                      onChange={e => setEngagementStatus(e.target.value)}
+                      placeholder="e.g. Replied, No answer…"
                       className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
