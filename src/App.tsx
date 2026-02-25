@@ -8,6 +8,7 @@ import { Roadmap } from './pages/Roadmap'
 import { Backlog } from './pages/Backlog'
 import { Sprints } from './pages/Sprints'
 import { Communications } from './pages/Communications'
+import { Leads } from './pages/Leads'
 import { Articles } from './pages/Articles'
 import { Documents } from './pages/Documents'
 import { DocumentEditor } from './pages/DocumentEditor'
@@ -70,6 +71,7 @@ function App() {
           <Route path="/sprints" element={<Sprints />} />
           <Route path="/backlog" element={<Backlog />} />
           <Route path="/communications" element={<Communications />} />
+          <Route path="/leads" element={<Leads />} />
           <Route path="/articles" element={<Articles />} />
           <Route path="/articles/marketing-roi-dashboard-guide" element={<MarketingROIDashboard />} />
           <Route path="/articles/employee-leave-management-automation" element={<EmployeeLeaveAutomation />} />
