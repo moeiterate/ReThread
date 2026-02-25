@@ -8,6 +8,7 @@ export function Documents() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDocuments();
@@ -27,12 +28,15 @@ export function Documents() {
 
   async function handleCreate() {
     try {
+      setCreateError(null);
       setCreating(true);
       const doc = await createDocument();
       if (doc) {
         setDocuments([doc, ...documents]);
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create document';
+      setCreateError(message);
       console.error('Failed to create document:', error);
     } finally {
       setCreating(false);
@@ -73,6 +77,12 @@ export function Documents() {
           {creating ? 'Creating...' : 'New Document'}
         </button>
       </div>
+
+      {createError && (
+        <div className="mb-6 rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+          {createError}
+        </div>
+      )}
 
       {documents.length === 0 ? (
         <div className="text-center py-12">

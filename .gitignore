@@ -8,3 +8,6 @@ node_modules/
 dist/
 *.log
 .vscode/
+e2e/run-screenshots/
+test-results/
+playwright-report/

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { supabase } from './lib/supabase'
+import { supabase, hasSupabaseConfig } from './lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 import { Layout } from './components/Layout'
 import { Dashboard } from './pages/Dashboard'
@@ -42,6 +42,20 @@ function App() {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  if (!hasSupabaseConfig) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <div className="max-w-md text-center space-y-4">
+          <h1 className="text-xl font-semibold text-gray-900">Supabase not configured</h1>
+          <p className="text-gray-600 text-sm">
+            Add <code className="bg-gray-200 px-1 rounded">VITE_SUPABASE_URL</code> and{' '}
+            <code className="bg-gray-200 px-1 rounded">VITE_SUPABASE_ANON_KEY</code> to a <code className="bg-gray-200 px-1 rounded">.env</code> file in the project root, then restart the dev server.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   // Show loading spinner while checking auth
   if (loading) {
