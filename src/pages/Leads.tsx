@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import {
   Search, Phone, Globe, ExternalLink, Save, Building2, MapPin,
-  X, ChevronUp, ChevronDown, ChevronRight, RefreshCw, ArrowUpRight,
+  X, ChevronUp, ChevronDown, ChevronRight, RefreshCw, ArrowUpRight, Plus,
 } from 'lucide-react';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -424,6 +424,231 @@ function SlideOver({
   );
 }
 
+// ─── New Lead Modal ─────────────────────────────────────────────────────────
+type NewLeadForm = {
+  name: string; city: string; state: string; phone: string;
+  website: string; reservation_system: string; status: string; notes: string;
+};
+const EMPTY_FORM: NewLeadForm = {
+  name: '', city: '', state: '', phone: '', website: '',
+  reservation_system: '', status: 'new', notes: '',
+};
+const US_STATES = [
+  'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
+  'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
+  'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT',
+  'VA','WA','WV','WI','WY',
+];
+
+function NewLeadModal({ onClose, onCreated }: {
+  onClose: () => void;
+  onCreated: (lead: Lead) => void;
+}) {
+  const [form, setForm] = useState<NewLeadForm>(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const set = (k: keyof NewLeadForm) =>
+    (e: { target: { value: string } }) =>
+      setForm(prev => ({ ...prev, [k]: e.target.value }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim()) { setError('Company name is required'); return; }
+    setSaving(true);
+    setError('');
+    const { data, error: err } = await supabase
+      .from('national_leads')
+      .insert({
+        place_id: `manual_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        name: form.name.trim(),
+        city: form.city || null,
+        state: form.state || null,
+        phone: form.phone || null,
+        website: form.website || null,
+        domain: form.website
+          ? form.website.replace(/^https?:\/\//, '').split('/')[0]
+          : null,
+        reservation_system: form.reservation_system || null,
+        status: form.status,
+        notes: form.notes || null,
+        is_hudson_customer: false,
+      })
+      .select()
+      .single();
+    if (err || !data) {
+      setError(err?.message ?? 'Failed to create lead');
+      setSaving(false);
+      return;
+    }
+    onCreated(data as Lead);
+    onClose();
+  };
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-[50]"
+        onClick={onClose}
+      />
+      <div className="fixed inset-0 z-[51] flex items-center justify-center p-4 pointer-events-none">
+        <form
+          onSubmit={handleSubmit}
+          className="pointer-events-auto bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Add New Lead</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Manually add a company to your pipeline</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[60vh]">
+            {/* Company name */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">
+                Company Name <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={set('name')}
+                placeholder="e.g. Acme Limo Co."
+                autoFocus
+                className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* City + State */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">City</label>
+                <input
+                  type="text"
+                  value={form.city}
+                  onChange={set('city')}
+                  placeholder="New York"
+                  className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">State</label>
+                <select
+                  value={form.state}
+                  onChange={set('state')}
+                  className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">— select —</option>
+                  {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {/* Phone + Website */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Phone</label>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={set('phone')}
+                  placeholder="(555) 000-0000"
+                  className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Website</label>
+                <input
+                  type="url"
+                  value={form.website}
+                  onChange={set('website')}
+                  placeholder="https://…"
+                  className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Reservation System + Status */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Reservation System</label>
+                <select
+                  value={form.reservation_system}
+                  onChange={set('reservation_system')}
+                  className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">— unknown —</option>
+                  {Object.keys(SYSTEM_COLOR).map(s => (
+                    <option key={s} value={s}>{SYSTEM_LABEL[s] ?? s}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Status</label>
+                <select
+                  value={form.status}
+                  onChange={set('status')}
+                  className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {Object.entries(STATUS_CFG).map(([val, cfg]) => (
+                    <option key={val} value={val}>{cfg.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Notes</label>
+              <textarea
+                value={form.notes}
+                onChange={set('notes')}
+                placeholder="How did you find this lead? Any context…"
+                rows={3}
+                className="w-full border border-gray-200 rounded-xl py-2.5 px-3 text-sm text-gray-700 placeholder-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white resize-none transition-colors"
+              />
+            </div>
+
+            {error && (
+              <p className="text-xs text-red-500 font-medium">{error}</p>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors rounded-lg hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white hover:bg-gray-700 transition-all active:scale-[.98] disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4" />
+              {saving ? 'Adding…' : 'Add Lead'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </>
+  );
+}
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
 export function Leads() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -435,6 +660,7 @@ export function Leads() {
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('all');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [showNewLead, setShowNewLead] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -470,6 +696,11 @@ export function Leads() {
   function handleSave(id: string, patch: Partial<Lead>) {
     setLeads(prev => prev.map(l => (l.id === id ? { ...l, ...patch } : l)));
     setSelected(prev => (prev?.id === id ? { ...prev, ...patch } : prev));
+  }
+
+  function handleCreated(lead: Lead) {
+    setLeads(prev => [lead, ...prev]);
+    setSelected(lead);
   }
 
   const filtered = leads
@@ -517,13 +748,22 @@ export function Leads() {
             </h1>
             <p className="text-xs text-gray-400 mt-0.5 font-normal">Transportation companies · outreach pipeline</p>
           </div>
-          <button
-            onClick={() => window.location.reload()}
-            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Refresh
+            </button>
+            <button
+              onClick={() => setShowNewLead(true)}
+              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-gray-900 hover:bg-gray-700 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Lead
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard label="Total Leads" value={stats.total} />
@@ -689,6 +929,14 @@ export function Leads() {
 
       {/* ── Slide-over ── */}
       <SlideOver lead={selected} onClose={() => setSelected(null)} onSave={handleSave} />
+
+      {/* ── New lead modal ── */}
+      {showNewLead && (
+        <NewLeadModal
+          onClose={() => setShowNewLead(false)}
+          onCreated={handleCreated}
+        />
+      )}
     </div>
   );
 }
