@@ -31,11 +31,12 @@ type Lead = {
   next_follow_up: string | null;
   'Lead Claimed By (Ahmad or Moaz)': string | null;
   'Engagement Status': string | null;
+  score: number | null;
 };
 
-type SortField = 'name' | 'state' | 'reservation_system' | 'status' | 'next_follow_up';
+type SortField = 'name' | 'state' | 'reservation_system' | 'status' | 'next_follow_up' | 'score';
 type SortDir = 'asc' | 'desc';
-type QuickFilter = 'all' | 'hudson' | 'phone' | 'followup';
+type QuickFilter = 'all' | 'hudson' | 'phone' | 'followup' | 'toprated';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 const STATUS_CFG: Record<string, { label: string; dot: string; pill: string }> = {
@@ -85,6 +86,14 @@ function followUpInfo(d: string | null): { label: string; cls: string; pulse: bo
   };
 }
 
+function autoSuggestScore(lead: Pick<Lead, 'is_hudson_customer' | 'reservation_system' | 'phone'>): number {
+  let s = 1;
+  if (lead.is_hudson_customer) s += 2;
+  if (lead.reservation_system && !['phone_only', 'unavailable', null].includes(lead.reservation_system)) s += 1;
+  if (lead.phone) s += 1;
+  return Math.min(s, 5);
+}
+
 // ─── Sub-components ──────────────────────────────────────────────────────────
 function StatCard({ label, value, accent = false }: { label: string; value: number; accent?: boolean }) {
   return (
@@ -113,6 +122,70 @@ function StatusPill({ status }: { status: string | null }) {
       <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
       {cfg.label}
     </span>
+  );
+}
+
+// Read-only compact stars for the table
+function Stars({ score }: { score: number | null }) {
+  if (!score) return <span className="text-gray-200 text-xs tracking-tight">{'★★★★★'}</span>;
+  return (
+    <span className="text-xs tracking-tight" aria-label={`${score} out of 5`}>
+      <span className="text-amber-400">{Array(score).fill('★').join('')}</span>
+      <span className="text-gray-200">{Array(5 - score).fill('★').join('')}</span>
+    </span>
+  );
+}
+
+// Interactive star picker for the slide-over
+function StarPicker({
+  value, suggested, onChange,
+}: {
+  value: number | null;
+  suggested: number;
+  onChange: (n: number) => void;
+}) {
+  const [hovered, setHovered] = useState<number | null>(null);
+  const display = hovered ?? value;
+  return (
+    <div>
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map(n => (
+          <button
+            key={n}
+            type="button"
+            onClick={() => onChange(value === n ? 0 : n)}
+            onMouseEnter={() => setHovered(n)}
+            onMouseLeave={() => setHovered(null)}
+            className="text-2xl leading-none transition-transform hover:scale-110 active:scale-95"
+            aria-label={`${n} star`}
+          >
+            <span className={display !== null && n <= display ? 'text-amber-400' : 'text-gray-200'}>
+              ★
+            </span>
+          </button>
+        ))}
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange(0)}
+            className="ml-1 text-xs text-gray-300 hover:text-gray-500 transition-colors"
+          >
+            clear
+          </button>
+        )}
+      </div>
+      {!value && (
+        <button
+          type="button"
+          onClick={() => onChange(suggested)}
+          className="mt-2 flex items-center gap-1 text-xs text-gray-400 hover:text-amber-500 transition-colors"
+        >
+          <span className="text-amber-300">{Array(suggested).fill('★').join('')}</span>
+          <span className="text-gray-200">{Array(5 - suggested).fill('★').join('')}</span>
+          <span className="ml-1">Suggested — tap to apply</span>
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -158,6 +231,7 @@ function SlideOver({
   const [followUp, setFollowUp] = useState('');
   const [claimedBy, setClaimedBy] = useState('');
   const [engagementStatus, setEngagementStatus] = useState('');
+  const [score, setScore] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [rawOpen, setRawOpen] = useState(false);
@@ -170,6 +244,7 @@ function SlideOver({
     setFollowUp(lead.next_follow_up ? lead.next_follow_up.split('T')[0] : '');
     setClaimedBy(lead['Lead Claimed By (Ahmad or Moaz)'] ?? '');
     setEngagementStatus(lead['Engagement Status'] ?? '');
+    setScore(lead.score ?? null);
     setSavedFlash(false);
     setRawOpen(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -184,6 +259,7 @@ function SlideOver({
       next_follow_up: followUp ? new Date(`${followUp}T12:00:00`).toISOString() : null,
       'Lead Claimed By (Ahmad or Moaz)': claimedBy || null,
       'Engagement Status': engagementStatus || null,
+      score: score || null,
     };
     const { error } = await supabase
       .from('national_leads')
@@ -244,6 +320,16 @@ function SlideOver({
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+
+              {/* Score */}
+              <div className="px-6 py-5">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Lead Score</p>
+                <StarPicker
+                  value={score}
+                  suggested={autoSuggestScore(lead)}
+                  onChange={n => setScore(n || null)}
+                />
+              </div>
 
               {/* Contact */}
               <div className="px-6 py-5">
@@ -717,6 +803,7 @@ export function Leads() {
       if (stateFilter !== 'all' && l.state !== stateFilter) return false;
       if (statusFilter !== 'all' && (l.status ?? 'new') !== statusFilter) return false;
       if (quickFilter === 'hudson' && !l.is_hudson_customer) return false;
+      if (quickFilter === 'toprated' && !(l.score !== null && l.score >= 4)) return false;
       if (quickFilter === 'phone' && l.reservation_system !== 'phone_only') return false;
       if (quickFilter === 'followup' && !(l.next_follow_up && new Date(l.next_follow_up).setHours(0, 0, 0, 0) <= todayMs)) return false;
       return true;
@@ -732,6 +819,7 @@ export function Leads() {
   const QUICK_FILTERS: { id: QuickFilter; label: string }[] = [
     { id: 'all',      label: `All (${leads.length})` },
     { id: 'hudson',   label: `🔥 Hudson (${stats.hudson})` },
+    { id: 'toprated', label: '⭐ Top Rated' },
     { id: 'phone',    label: 'Phone Only' },
     { id: 'followup', label: '📅 Follow-up' },
   ];
@@ -847,6 +935,7 @@ export function Leads() {
                 <SortTh field="state" sortField={sortField} sortDir={sortDir} onSort={toggleSort}>State</SortTh>
                 <SortTh field="reservation_system" sortField={sortField} sortDir={sortDir} onSort={toggleSort}>System</SortTh>
                 <SortTh field="status" sortField={sortField} sortDir={sortDir} onSort={toggleSort}>Status</SortTh>
+                <SortTh field="score" sortField={sortField} sortDir={sortDir} onSort={toggleSort}>Score</SortTh>
                 <SortTh field="next_follow_up" sortField={sortField} sortDir={sortDir} onSort={toggleSort}>Follow-up</SortTh>
                 <th className="px-4 py-3 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Actions</th>
               </tr>
@@ -897,6 +986,9 @@ export function Leads() {
                       </td>
                       <td className="px-4 py-3.5">
                         <StatusPill status={lead.status} />
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <Stars score={lead.score} />
                       </td>
                       <td className="px-4 py-3.5">
                         <span className={`text-xs flex items-center gap-1.5 ${fu.cls}`}>
