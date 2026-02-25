@@ -9,8 +9,10 @@ interface Lead {
   address: string;
   city: string;
   website: string;
-  review_count: number;
+  review_count?: number; // optional because national may not use
   reservation_page_url: string;
+  is_hudson_customer?: boolean;
+  reservation_system?: string;
   lead_claimed_by: string;
   engagement_status: string;
   notes: string;
@@ -143,6 +145,38 @@ export const Leads = () => {
     const isEditing = editingCell?.id === row.id && editingCell?.field === field;
 
     if (isEditing) {
+      if (field === 'lead_claimed_by') {
+        return (
+          <select
+            autoFocus
+            className="w-full border-b border-blue-300 focus:outline-none"
+            value={value as string}
+            onChange={(e) => {
+              handleCellChange(row.id, field, e.target.value);
+              handleCellBlur(row.id, field, e.target.value);
+            }}
+          >
+            <option value="">(none)</option>
+            <option value="Ahmad">Ahmad</option>
+            <option value="Moaz">Moaz</option>
+          </select>
+        );
+      }
+
+      if (field === 'is_hudson_customer') {
+        return (
+          <input
+            type="checkbox"
+            autoFocus
+            checked={Boolean(value)}
+            onChange={(e) => {
+              handleCellChange(row.id, field, e.target.checked);
+              handleCellBlur(row.id, field, e.target.checked);
+            }}
+          />
+        );
+      }
+
       return (
         <input
           autoFocus
@@ -162,10 +196,14 @@ export const Leads = () => {
       );
     }
 
+    if (field === 'is_hudson_customer') {
+      return <span>{value ? 'Yes' : 'No'}</span>;
+    }
+
     return <span>{String(value)}</span>;
   };
 
-  const columns: Array<keyof Lead> = [
+  const baseColumns: Array<keyof Lead> = [
     'name',
     'phone',
     'address',
@@ -173,10 +211,17 @@ export const Leads = () => {
     'website',
     'review_count',
     'reservation_page_url',
+    'is_hudson_customer',
+    'reservation_system',
     'lead_claimed_by',
     'engagement_status',
     'notes',
   ];
+
+  const columns: Array<keyof Lead> =
+    activeTab === 'national'
+      ? baseColumns.filter((c) => c !== 'review_count')
+      : baseColumns;
 
   if (loading) {
     return (
@@ -219,8 +264,8 @@ export const Leads = () => {
         />
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full table-auto text-sm">
+      <div className="overflow-x-auto w-full">
+        <table className="w-full table-auto text-sm">
           <thead className="bg-gray-100">
             <tr>
               {columns.map((col) => (
