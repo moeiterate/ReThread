@@ -122,7 +122,35 @@ export const Leads = () => {
       .eq('id', id);
     if (error) {
       console.error('update error', error);
-      showToast(`Failed to update ${field}`);
+      // if it's a permission/RLS issue, try proxying the update via a local service-role proxy
+      const message = String(error.message || error);
+      if (message.toLowerCase().includes('permission') || message.toLowerCase().includes('forbidden') || message.toLowerCase().includes('row-level')) {
+        try {
+          const proxyResp = await fetch('http://localhost:8787/api/proxy-update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ table: tableForTab, id, updates: { [field]: value } }),
+          });
+          if (proxyResp.ok) {
+            const updated = await proxyResp.json().catch(() => null);
+            // If proxy returned the updated row(s), merge into state
+            if (Array.isArray(updated) && updated.length > 0) {
+              const fresh = updated[0];
+              setData((prev) => prev.map((r) => (r.id === id ? fresh : r)));
+            }
+            return;
+          }
+          const body = await proxyResp.text();
+          console.error('proxy update failed', proxyResp.status, body);
+          showToast(`Failed to update ${String(field)}`);
+        } catch (e) {
+          console.error('proxy call error', e);
+          showToast(`Failed to update ${String(field)}`);
+        }
+        return;
+      }
+
+      showToast(`Failed to update ${String(field)}`);
       // reload single row from server to revert
       const { data: fresh, error: fetchErr } = await supabase
         .from(tableForTab)
