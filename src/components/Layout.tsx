@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 
 export const Layout = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const { pathname } = useLocation();
+  const isFullBleed = pathname.startsWith('/leads');
 
   return (
-    <div className="flex min-h-screen">
+    <div className={`${isFullBleed ? 'h-screen overflow-hidden' : 'min-h-screen'} flex`}>
       <div className="texture"></div>
 
       {/* Mobile top bar (does not affect desktop) */}
@@ -39,7 +41,11 @@ export const Layout = () => {
 
       <Sidebar mobileOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
 
-      <main className="flex-1 min-w-0 pt-16 md:pt-0 md:ml-64 px-4 py-6 sm:px-6 md:p-12 max-w-5xl mx-auto">
+      <main className={`flex-1 min-w-0 md:ml-64 ${
+        isFullBleed
+          ? 'overflow-hidden flex flex-col pt-14 md:pt-0'
+          : 'pt-16 md:pt-0 px-4 py-6 sm:px-6 md:p-12 max-w-5xl mx-auto'
+      }`}>
         <Outlet />
       </main>
     </div>
