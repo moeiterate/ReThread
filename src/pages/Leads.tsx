@@ -4,6 +4,7 @@ import {
   Search, Phone, Globe, ExternalLink, Save, Building2, MapPin,
   X, ChevronUp, ChevronDown, ChevronRight, RefreshCw, ArrowUpRight, Plus,
   MessageSquare, PhoneCall, Mail, Users, ArrowRight, Monitor, Send,
+  Pencil, Trash2,
 } from 'lucide-react';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -47,7 +48,7 @@ type ActivityEntry = {
 
 type SortField = 'name' | 'state' | 'reservation_system' | 'status' | 'next_follow_up' | 'score';
 type SortDir = 'asc' | 'desc';
-type QuickFilter = 'all' | 'hudson' | 'phone' | 'followup' | 'toprated';
+type QuickFilter = 'all' | 'hudson' | 'toprated';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 const STATUS_CFG: Record<string, { label: string; dot: string; pill: string }> = {
@@ -127,11 +128,11 @@ function autoSuggestScore(lead: Pick<Lead, 'is_hudson_customer' | 'reservation_s
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
-function StatCard({ label, value, accent = false }: { label: string; value: number; accent?: boolean }) {
+function StatCard({ label, value, accent = false, danger = false }: { label: string; value: number; accent?: boolean; danger?: boolean }) {
   return (
-    <div className={`rounded-xl px-5 py-4 flex flex-col gap-1 ${accent ? 'bg-amber-50 ring-1 ring-amber-200' : 'bg-white ring-1 ring-gray-200'}`}>
-      <span className={`text-3xl font-bold tabular-nums ${accent ? 'text-amber-700' : 'text-gray-900'}`}>{value}</span>
-      <span className={`text-xs font-medium ${accent ? 'text-amber-500' : 'text-gray-400'}`}>{label}</span>
+    <div className={`rounded-xl px-3 py-3 flex flex-col gap-0.5 ${danger ? 'bg-red-50 ring-1 ring-red-200' : accent ? 'bg-amber-50 ring-1 ring-amber-200' : 'bg-white ring-1 ring-gray-200'}`}>
+      <span className={`text-2xl font-bold tabular-nums leading-none ${danger ? 'text-red-600' : accent ? 'text-amber-700' : 'text-gray-900'}`}>{value}</span>
+      <span className={`text-[11px] font-medium leading-tight mt-1 ${danger ? 'text-red-400' : accent ? 'text-amber-500' : 'text-gray-400'}`}>{label}</span>
     </div>
   );
 }
@@ -272,6 +273,19 @@ function SlideOver({
   const [newLogType, setNewLogType] = useState<ActivityEntry['type']>('note');
   const [newLogBody, setNewLogBody] = useState('');
   const [loggingEntry, setLoggingEntry] = useState(false);
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+  const [editingBody, setEditingBody] = useState('');
+  const [savingEntryId, setSavingEntryId] = useState<string | null>(null);
+  const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
+  // Editable contact/detail fields
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const [editState, setEditState] = useState('');
+  const [editWebsite, setEditWebsite] = useState('');
+  const [editReservationSystem, setEditReservationSystem] = useState('');
+  const [editIsHudson, setEditIsHudson] = useState(false);
 
   // Sync fields when a new lead is selected
   useEffect(() => {
@@ -285,6 +299,16 @@ function SlideOver({
     setSavedFlash(false);
     setRawOpen(false);
     setNewLogBody('');
+    setEditingEntryId(null);
+    setEditingBody('');
+    setEditName(lead.name ?? '');
+    setEditPhone(lead.phone ?? '');
+    setEditAddress(lead.address ?? '');
+    setEditCity(lead.city ?? '');
+    setEditState(lead.state ?? '');
+    setEditWebsite(lead.website ?? '');
+    setEditReservationSystem(lead.reservation_system ?? '');
+    setEditIsHudson(lead.is_hudson_customer ?? false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lead?.id]);
 
@@ -325,10 +349,47 @@ function SlideOver({
     setLoggingEntry(false);
   };
 
+  const handleSaveEdit = async (id: string) => {
+    if (!editingBody.trim()) return;
+    setSavingEntryId(id);
+    const { error } = await supabase
+      .from('lead_activity_log')
+      .update({ body: editingBody.trim() })
+      .eq('id', id);
+    if (!error) {
+      setActivityLog(prev =>
+        prev.map(e => e.id === id ? { ...e, body: editingBody.trim() } : e),
+      );
+      setEditingEntryId(null);
+    }
+    setSavingEntryId(null);
+  };
+
+  const handleDeleteEntry = async (id: string) => {
+    setDeletingEntryId(id);
+    const { error } = await supabase
+      .from('lead_activity_log')
+      .delete()
+      .eq('id', id);
+    if (!error) {
+      setActivityLog(prev => prev.filter(e => e.id !== id));
+    }
+    setDeletingEntryId(null);
+  };
+
   const handleSave = async () => {
     if (!lead) return;
     setSaving(true);
     const patch: Partial<Lead> = {
+      name: editName || null,
+      phone: editPhone || null,
+      address: editAddress || null,
+      city: editCity || null,
+      state: editState || null,
+      website: editWebsite || null,
+      domain: editWebsite ? editWebsite.replace(/^https?:\/\//, '').split('/')[0] : null,
+      reservation_system: editReservationSystem || null,
+      is_hudson_customer: editIsHudson,
       notes,
       status,
       next_follow_up: followUp ? new Date(`${followUp}T12:00:00`).toISOString() : null,
@@ -423,29 +484,87 @@ function SlideOver({
                 />
               </div>
 
-              {/* Contact */}
+              {/* Details — all editable */}
               <div className="px-6 py-5">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Contact</p>
-                <div className="space-y-2">
-                  {lead.phone && (
-                    <a href={`tel:${lead.phone}`} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50 hover:bg-blue-50 group transition-colors">
-                      <Phone className="w-4 h-4 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors" />
-                      <span className="text-sm text-gray-700 font-medium">{lead.phone}</span>
-                    </a>
-                  )}
-                  {lead.website && (
-                    <a href={lead.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50 hover:bg-blue-50 group transition-colors">
-                      <Globe className="w-4 h-4 text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors" />
-                      <span className="text-sm text-gray-700 font-medium flex-1 truncate">{lead.domain ?? lead.website}</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 text-gray-200 group-hover:text-blue-400 flex-shrink-0 transition-colors" />
-                    </a>
-                  )}
-                  {lead.address && (
-                    <div className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-gray-50">
-                      <MapPin className="w-4 h-4 text-gray-300 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-gray-600">{lead.address}</span>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Details</p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-1.5">Company Name</label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={e => setEditName(e.target.value)}
+                      placeholder="Company name…"
+                      className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 font-medium mb-1.5">City</label>
+                      <input
+                        type="text"
+                        value={editCity}
+                        onChange={e => setEditCity(e.target.value)}
+                        placeholder="City"
+                        className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
-                  )}
+                    <div>
+                      <label className="block text-xs text-gray-500 font-medium mb-1.5">State</label>
+                      <select
+                        value={editState}
+                        onChange={e => setEditState(e.target.value)}
+                        className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">— select —</option>
+                        {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-1.5">Phone</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="tel"
+                        value={editPhone}
+                        onChange={e => setEditPhone(e.target.value)}
+                        placeholder="(555) 000-0000"
+                        className="flex-1 border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      {editPhone && (
+                        <a href={`tel:${editPhone}`} className="flex-shrink-0 p-2 rounded-lg bg-gray-50 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                          <Phone className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-1.5">Website</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={editWebsite}
+                        onChange={e => setEditWebsite(e.target.value)}
+                        placeholder="https://…"
+                        className="flex-1 border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      {editWebsite && (
+                        <a href={editWebsite} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 p-2 rounded-lg bg-gray-50 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                          <ArrowUpRight className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 font-medium mb-1.5">Address</label>
+                    <input
+                      type="text"
+                      value={editAddress}
+                      onChange={e => setEditAddress(e.target.value)}
+                      placeholder="Street address…"
+                      className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -496,6 +615,30 @@ function SlideOver({
                       className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs text-gray-500 font-medium mb-1.5">Reservation System</label>
+                    <select
+                      value={editReservationSystem}
+                      onChange={e => setEditReservationSystem(e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">— unknown —</option>
+                      {Object.keys(SYSTEM_COLOR).map(s => (
+                        <option key={s} value={s}>{SYSTEM_LABEL[s] ?? s}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="flex items-center gap-2 cursor-pointer pt-1">
+                      <input
+                        type="checkbox"
+                        checked={editIsHudson}
+                        onChange={e => setEditIsHudson(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 accent-amber-500"
+                      />
+                      <span className="text-xs text-gray-500 font-medium">Hudson Customer 🔥</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -529,8 +672,14 @@ function SlideOver({
                     {activityLog.map(entry => {
                       const cfg = ACTIVITY_TYPE_CFG[entry.type] ?? ACTIVITY_TYPE_CFG.note;
                       const Icon = cfg.icon;
+                      const isEditing  = editingEntryId === entry.id;
+                      const isDeleting = deletingEntryId === entry.id;
+                      const canEdit    = entry.type !== 'status_change';
                       return (
-                        <div key={entry.id} className="flex gap-3">
+                        <div
+                          key={entry.id}
+                          className={`flex gap-3 group transition-opacity ${isDeleting ? 'opacity-30 pointer-events-none' : ''}`}
+                        >
                           <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center mt-0.5 ${cfg.bg}`}>
                             <Icon className={`w-3.5 h-3.5 ${cfg.color}`} />
                           </div>
@@ -545,8 +694,62 @@ function SlideOver({
                               <span className="text-[10px] text-gray-300 ml-auto flex-shrink-0">
                                 {timeAgo(entry.created_at)}
                               </span>
+                              {/* Hover actions */}
+                              {!isEditing && (
+                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                  {canEdit && (
+                                    <button
+                                      onClick={() => { setEditingEntryId(entry.id); setEditingBody(entry.body ?? ''); }}
+                                      className="p-1 rounded text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                      title="Edit"
+                                    >
+                                      <Pencil className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => handleDeleteEntry(entry.id)}
+                                    className="p-1 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
-                            {entry.body && <p className="text-sm text-gray-600 leading-relaxed">{entry.body}</p>}
+                            {/* Body — read or edit mode */}
+                            {isEditing ? (
+                              <div className="mt-1">
+                                <textarea
+                                  value={editingBody}
+                                  onChange={e => setEditingBody(e.target.value)}
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSaveEdit(entry.id);
+                                    if (e.key === 'Escape') setEditingEntryId(null);
+                                  }}
+                                  rows={3}
+                                  autoFocus
+                                  className="w-full border border-blue-300 rounded-lg py-2 px-3 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                                />
+                                <div className="flex items-center gap-1.5 mt-1.5">
+                                  <button
+                                    onClick={() => handleSaveEdit(entry.id)}
+                                    disabled={savingEntryId === entry.id || !editingBody.trim()}
+                                    className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-900 text-white hover:bg-gray-700 transition-all active:scale-[.98] disabled:opacity-40"
+                                  >
+                                    {savingEntryId === entry.id ? 'Saving…' : 'Save'}
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingEntryId(null)}
+                                    className="px-2.5 py-1 rounded-lg text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <span className="text-[10px] text-gray-300 ml-auto">⌘↵ save · Esc cancel</span>
+                                </div>
+                              </div>
+                            ) : (
+                              entry.body && <p className="text-sm text-gray-600 leading-relaxed">{entry.body}</p>
+                            )}
                           </div>
                         </div>
                       );
@@ -927,6 +1130,8 @@ export function Leads() {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [showNewLead, setShowNewLead] = useState(false);
+  const [claimedByFilter, setClaimedByFilter] = useState('all');
+  const [systemFilter, setSystemFilter] = useState('all');
 
   useEffect(() => {
     let mounted = true;
@@ -946,10 +1151,11 @@ export function Leads() {
   const todayMs = new Date().setHours(0, 0, 0, 0);
 
   const stats = {
-    total:    leads.length,
-    hudson:   leads.filter(l => l.is_hudson_customer).length,
-    followup: leads.filter(l => l.next_follow_up && new Date(l.next_follow_up).setHours(0, 0, 0, 0) <= todayMs).length,
-    pipeline: leads.filter(l => ['researching', 'contacted', 'demo'].includes(l.status ?? '')).length,
+    total:      leads.length,
+    hudson:     leads.filter(l => l.is_hudson_customer).length,
+    followup:   leads.filter(l => l.next_follow_up && new Date(l.next_follow_up).setHours(0, 0, 0, 0) <= todayMs).length,
+    pipeline:   leads.filter(l => ['researching', 'contacted', 'demo'].includes(l.status ?? '')).length,
+    rejections: leads.filter(l => l.status === 'lost').length,
   };
 
   const states = [...new Set(leads.map(l => l.state).filter(Boolean) as string[])].sort();
@@ -982,10 +1188,10 @@ export function Leads() {
       }
       if (stateFilter !== 'all' && l.state !== stateFilter) return false;
       if (statusFilter !== 'all' && (l.status ?? 'new') !== statusFilter) return false;
+      if (claimedByFilter !== 'all' && (l['Lead Claimed By (Ahmad or Moaz)'] ?? '') !== claimedByFilter) return false;
+      if (systemFilter !== 'all' && (l.reservation_system ?? '') !== systemFilter) return false;
       if (quickFilter === 'hudson' && !l.is_hudson_customer) return false;
       if (quickFilter === 'toprated' && !(l.score !== null && l.score >= 4)) return false;
-      if (quickFilter === 'phone' && l.reservation_system !== 'phone_only') return false;
-      if (quickFilter === 'followup' && !(l.next_follow_up && new Date(l.next_follow_up).setHours(0, 0, 0, 0) <= todayMs)) return false;
       return true;
     })
     .sort((a, b) => {
@@ -994,14 +1200,12 @@ export function Leads() {
       return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
     });
 
-  const hasActiveFilter = search || statusFilter !== 'all' || stateFilter !== 'all' || quickFilter !== 'all';
+  const hasActiveFilter = search || statusFilter !== 'all' || stateFilter !== 'all' || quickFilter !== 'all' || claimedByFilter !== 'all' || systemFilter !== 'all';
 
   const QUICK_FILTERS: { id: QuickFilter; label: string }[] = [
     { id: 'all',      label: `All (${leads.length})` },
     { id: 'hudson',   label: `🔥 Hudson (${stats.hudson})` },
     { id: 'toprated', label: '⭐ Top Rated' },
-    { id: 'phone',    label: 'Phone Only' },
-    { id: 'followup', label: '📅 Follow-up' },
   ];
 
   return (
@@ -1033,11 +1237,12 @@ export function Leads() {
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
           <StatCard label="Total Leads" value={stats.total} />
-          <StatCard label="🔥 Hudson Customers" value={stats.hudson} accent />
-          <StatCard label="Needs Follow-up" value={stats.followup} />
-          <StatCard label="Active Pipeline" value={stats.pipeline} />
+          <StatCard label="🔥 Hudson" value={stats.hudson} accent />
+          <StatCard label="Pipeline" value={stats.pipeline} />
+          <StatCard label="Follow-up" value={stats.followup} />
+          <StatCard label="Rejections" value={stats.rejections} danger />
         </div>
       </div>
 
@@ -1085,9 +1290,29 @@ export function Leads() {
             <option value="all">All States</option>
             {states.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
+          <select
+            value={claimedByFilter}
+            onChange={e => setClaimedByFilter(e.target.value)}
+            className="border border-gray-200 rounded-lg text-xs py-1.5 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="all">All Owners</option>
+            <option value="">Unassigned</option>
+            <option value="Ahmad">Ahmad</option>
+            <option value="Moaz">Moaz</option>
+          </select>
+          <select
+            value={systemFilter}
+            onChange={e => setSystemFilter(e.target.value)}
+            className="border border-gray-200 rounded-lg text-xs py-1.5 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="all">All Systems</option>
+            {Object.keys(SYSTEM_COLOR).map(s => (
+              <option key={s} value={s}>{SYSTEM_LABEL[s] ?? s}</option>
+            ))}
+          </select>
           {hasActiveFilter && (
             <button
-              onClick={() => { setSearch(''); setStatusFilter('all'); setStateFilter('all'); setQuickFilter('all'); }}
+              onClick={() => { setSearch(''); setStatusFilter('all'); setStateFilter('all'); setQuickFilter('all'); setClaimedByFilter('all'); setSystemFilter('all'); }}
               className="text-xs text-blue-500 hover:text-blue-700 font-medium transition-colors"
             >
               Clear
@@ -1117,18 +1342,19 @@ export function Leads() {
                 <SortTh field="status" sortField={sortField} sortDir={sortDir} onSort={toggleSort}>Status</SortTh>
                 <SortTh field="score" sortField={sortField} sortDir={sortDir} onSort={toggleSort}>Score</SortTh>
                 <SortTh field="next_follow_up" sortField={sortField} sortDir={sortDir} onSort={toggleSort}>Follow-up</SortTh>
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Claimed</th>
                 <th className="px-4 py-3 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-24 text-center">
+                  <td colSpan={8} className="py-24 text-center">
                     <Building2 className="w-8 h-8 text-gray-200 mx-auto mb-3" />
                     <p className="text-sm text-gray-400">No leads match your filters</p>
                     {hasActiveFilter && (
                       <button
-                        onClick={() => { setSearch(''); setStatusFilter('all'); setStateFilter('all'); setQuickFilter('all'); }}
+                        onClick={() => { setSearch(''); setStatusFilter('all'); setStateFilter('all'); setQuickFilter('all'); setClaimedByFilter('all'); setSystemFilter('all'); }}
                         className="mt-2 text-xs text-blue-500 hover:underline"
                       >
                         Clear all filters
@@ -1175,6 +1401,15 @@ export function Leads() {
                           {fu.pulse && <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse flex-shrink-0" />}
                           {fu.label}
                         </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        {lead['Lead Claimed By (Ahmad or Moaz)'] ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700">
+                            {lead['Lead Claimed By (Ahmad or Moaz)']}
+                          </span>
+                        ) : (
+                          <span className="text-gray-200 text-xs">—</span>
+                        )}
                       </td>
                       <td className="pr-6 md:pr-8 pl-4 py-3.5">
                         <div className="flex items-center justify-end gap-0.5" onClick={e => e.stopPropagation()}>

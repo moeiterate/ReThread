@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Edit2, Save, X, AlertCircle, CheckCircle2, Plus, Trash2, ChevronRight } from 'lucide-react';
-import { readDashboardFromGitHub, writeDashboardToGitHub, getGitHubToken } from '../services/github';
 
 type SectionType = 'hero' | 'text' | 'tenets' | 'sprint-cycle' | 'custom';
 
@@ -105,101 +104,47 @@ export const Dashboard = () => {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [githubTokenStatus, setGithubTokenStatus] = useState<'checking' | 'ok' | 'missing'>('checking');
 
-  // Check GitHub token on mount
+  // Load data from localStorage on mount
   useEffect(() => {
-    const token = getGitHubToken();
-    setGithubTokenStatus(token ? 'ok' : 'missing');
-  }, []);
-
-  // Load data from GitHub on mount
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const saved = await readDashboardFromGitHub();
-        if (saved) {
-          // Merge saved data with defaults to ensure all fields exist
-          const merged: DashboardData = {
-            ...defaultData,
-            ...saved,
-            sections: saved.sections || defaultData.sections,
-          };
-          setData(merged);
-        } else {
-          setData(defaultData);
-        }
-      } catch (err: any) {
-        console.error('Failed to load from GitHub:', err);
-        // Fallback to localStorage if GitHub fails
-        const localSaved = localStorage.getItem('dashboard-data');
-        if (localSaved) {
-          try {
-            const parsed = JSON.parse(localSaved);
-            const merged: DashboardData = {
-              ...defaultData,
-              ...parsed,
-              sections: parsed.sections || defaultData.sections,
-            };
-            setData(merged);
-          } catch (e) {
-            setData(defaultData);
-          }
-        } else {
-          setData(defaultData);
-        }
-        if (err.message?.includes('token')) {
-          setGithubTokenStatus('missing');
-        }
-        setError(err.message || 'Failed to load from GitHub. Using local data.');
-      } finally {
-        setLoading(false);
+    try {
+      const localSaved = localStorage.getItem('dashboard-data');
+      if (localSaved) {
+        const parsed = JSON.parse(localSaved);
+        const merged: DashboardData = {
+          ...defaultData,
+          ...parsed,
+          sections: parsed.sections || defaultData.sections,
+        };
+        setData(merged);
+      } else {
+        setData(defaultData);
       }
-    };
-
-    loadData();
+    } catch {
+      setData(defaultData);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleSave = async () => {
+  const handleSave = () => {
     try {
       setSaving(true);
       setSaveStatus('idle');
       setError(null);
 
-      // Update the date
       const now = new Date();
       const updatedData: DashboardData = {
         ...data,
         updatedDate: `Updated ${now.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`,
       };
 
-      // Save to GitHub
-      try {
-        await writeDashboardToGitHub(updatedData, undefined, `Update dashboard - ${new Date().toISOString()}`);
-        setSaveStatus('success');
-        setTimeout(() => setSaveStatus('idle'), 3000);
-      } catch (githubErr: any) {
-        console.error('GitHub save failed:', githubErr);
-        // Still save locally
-        localStorage.setItem('dashboard-data', JSON.stringify(updatedData));
-        
-        if (githubErr.message?.includes('token')) {
-          setGithubTokenStatus('missing');
-          setError('GitHub token not configured. Changes saved locally. Add VITE_GITHUB_TOKEN to Netlify environment variables.');
-        } else {
-          setError(`GitHub save failed: ${githubErr.message}. Changes saved locally.`);
-        }
-        setSaveStatus('error');
-        return; // Don't clear editing mode if GitHub save failed
-      }
-
-      // Also save to localStorage as backup
       localStorage.setItem('dashboard-data', JSON.stringify(updatedData));
-
       setData(updatedData);
       setHasChanges(false);
       setIsEditing(false);
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (err: any) {
       console.error('Failed to save:', err);
       setError(err.message || 'Failed to save');
@@ -209,38 +154,22 @@ export const Dashboard = () => {
     }
   };
 
-  const handleCancel = async () => {
-    try {
-      // Reload from GitHub
-      const saved = await readDashboardFromGitHub();
-      if (saved) {
+  const handleCancel = () => {
+    const localSaved = localStorage.getItem('dashboard-data');
+    if (localSaved) {
+      try {
+        const parsed = JSON.parse(localSaved);
         const merged: DashboardData = {
           ...defaultData,
-          ...saved,
-          sections: saved.sections || defaultData.sections,
+          ...parsed,
+          sections: parsed.sections || defaultData.sections,
         };
         setData(merged);
-      } else {
+      } catch {
         setData(defaultData);
       }
-    } catch (err) {
-      // Fallback to localStorage
-      const localSaved = localStorage.getItem('dashboard-data');
-      if (localSaved) {
-        try {
-          const parsed = JSON.parse(localSaved);
-          const merged: DashboardData = {
-            ...defaultData,
-            ...parsed,
-            sections: parsed.sections || defaultData.sections,
-          };
-          setData(merged);
-        } catch (e) {
-          setData(defaultData);
-        }
-      } else {
-        setData(defaultData);
-      }
+    } else {
+      setData(defaultData);
     }
     setHasChanges(false);
     setIsEditing(false);
@@ -395,15 +324,6 @@ export const Dashboard = () => {
         <div className="fixed top-20 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 max-w-md">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <span className="text-sm">{error}</span>
-        </div>
-      )}
-
-      {githubTokenStatus === 'missing' && (
-        <div className="fixed top-20 left-4 z-50 bg-yellow-500 text-white px-6 py-3 rounded-lg shadow-lg max-w-md">
-          <AlertCircle className="w-5 h-5 inline mr-2" />
-          <span className="text-sm">
-            GitHub token not configured. Add VITE_GITHUB_TOKEN to Netlify environment variables for cloud saves.
-          </span>
         </div>
       )}
 
