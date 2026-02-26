@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import {
   Search, Phone, Globe, ExternalLink, Save, Building2, MapPin,
   X, ChevronUp, ChevronDown, ChevronRight, RefreshCw, ArrowUpRight, Plus,
+  MessageSquare, PhoneCall, Mail, Users, ArrowRight, Monitor, Send,
 } from 'lucide-react';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -32,6 +33,16 @@ type Lead = {
   'Lead Claimed By (Ahmad or Moaz)': string | null;
   'Engagement Status': string | null;
   score: number | null;
+};
+
+type ActivityEntry = {
+  id: string;
+  lead_id: string;
+  type: 'note' | 'call' | 'email' | 'meeting' | 'status_change' | 'demo' | 'other';
+  body: string | null;
+  author: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
 };
 
 type SortField = 'name' | 'state' | 'reservation_system' | 'status' | 'next_follow_up' | 'score';
@@ -68,7 +79,28 @@ const SYSTEM_LABEL: Record<string, string> = {
   direct:      'Direct',
 };
 
+const ACTIVITY_TYPE_CFG: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
+  note:          { label: 'Note',          icon: MessageSquare, color: 'text-gray-500',    bg: 'bg-gray-100'   },
+  call:          { label: 'Call',          icon: PhoneCall,     color: 'text-blue-500',    bg: 'bg-blue-50'    },
+  email:         { label: 'Email',         icon: Mail,          color: 'text-violet-500',  bg: 'bg-violet-50'  },
+  meeting:       { label: 'Meeting',       icon: Users,         color: 'text-emerald-500', bg: 'bg-emerald-50' },
+  status_change: { label: 'Status Change', icon: ArrowRight,    color: 'text-amber-500',   bg: 'bg-amber-50'   },
+  demo:          { label: 'Demo',          icon: Monitor,       color: 'text-orange-500',  bg: 'bg-orange-50'  },
+  other:         { label: 'Other',         icon: MessageSquare, color: 'text-gray-500',    bg: 'bg-gray-100'   },
+};
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
+function timeAgo(dateStr: string): string {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (seconds < 60)  return 'just now';
+  const mins = Math.floor(seconds / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 function followUpInfo(d: string | null): { label: string; cls: string; pulse: boolean } {
   if (!d) return { label: '—', cls: 'text-gray-300', pulse: false };
   const msPerDay = 86_400_000;
@@ -235,6 +267,11 @@ function SlideOver({
   const [saving, setSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [rawOpen, setRawOpen] = useState(false);
+  const [activityLog, setActivityLog] = useState<ActivityEntry[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [newLogType, setNewLogType] = useState<ActivityEntry['type']>('note');
+  const [newLogBody, setNewLogBody] = useState('');
+  const [loggingEntry, setLoggingEntry] = useState(false);
 
   // Sync fields when a new lead is selected
   useEffect(() => {
@@ -247,8 +284,46 @@ function SlideOver({
     setScore(lead.score ?? null);
     setSavedFlash(false);
     setRawOpen(false);
+    setNewLogBody('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lead?.id]);
+
+  // Load activity log whenever the selected lead changes
+  useEffect(() => {
+    if (!lead) { setActivityLog([]); return; }
+    setActivityLoading(true);
+    supabase
+      .from('lead_activity_log')
+      .select('*')
+      .eq('lead_id', lead.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setActivityLog((data as ActivityEntry[]) ?? []);
+        setActivityLoading(false);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lead?.id]);
+
+  const handleLogEntry = async () => {
+    if (!lead || !newLogBody.trim()) return;
+    setLoggingEntry(true);
+    const { data, error } = await supabase
+      .from('lead_activity_log')
+      .insert({
+        lead_id: lead.id,
+        type: newLogType,
+        body: newLogBody.trim(),
+        author: claimedBy || null,
+        metadata: {},
+      })
+      .select()
+      .single();
+    if (!error && data) {
+      setActivityLog(prev => [data as ActivityEntry, ...prev]);
+      setNewLogBody('');
+    }
+    setLoggingEntry(false);
+  };
 
   const handleSave = async () => {
     if (!lead) return;
@@ -267,6 +342,23 @@ function SlideOver({
       .eq('id', lead.id);
     if (!error) {
       onSave(lead.id, patch);
+      // Auto-log status changes as an activity entry
+      if (status !== (lead.status ?? 'new')) {
+        const fromLabel = STATUS_CFG[lead.status ?? 'new']?.label ?? (lead.status ?? 'new');
+        const toLabel   = STATUS_CFG[status]?.label ?? status;
+        const { data: newEntry } = await supabase
+          .from('lead_activity_log')
+          .insert({
+            lead_id: lead.id,
+            type: 'status_change',
+            body: `${fromLabel} → ${toLabel}`,
+            author: claimedBy || null,
+            metadata: { from: lead.status ?? 'new', to: status },
+          })
+          .select()
+          .single();
+        if (newEntry) setActivityLog(prev => [newEntry as ActivityEntry, ...prev]);
+      }
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 2200);
     }
@@ -407,16 +499,104 @@ function SlideOver({
                 </div>
               </div>
 
-              {/* Notes */}
+              {/* Activity Log */}
               <div className="px-6 py-5">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Notes & Activity</p>
-                <textarea
-                  value={notes}
-                  onChange={e => setNotes(e.target.value)}
-                  placeholder="Log calls, objections, next steps…"
-                  rows={5}
-                  className="w-full border border-gray-200 rounded-xl py-3 px-3.5 text-sm text-gray-700 placeholder-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white resize-none transition-colors"
-                />
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Activity Log</p>
+
+                {/* Pinned Summary — maps to lead.notes, saved with the Save button */}
+                <div className="mb-5">
+                  <label className="flex items-center gap-1.5 text-xs text-gray-400 font-medium mb-1.5">
+                    <span>📌</span> Pinned Summary
+                  </label>
+                  <textarea
+                    value={notes}
+                    onChange={e => setNotes(e.target.value)}
+                    placeholder="High-level notes about this lead…"
+                    rows={2}
+                    className="w-full border border-gray-200 rounded-xl py-2.5 px-3.5 text-sm text-gray-700 placeholder-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white resize-none transition-colors"
+                  />
+                </div>
+
+                {/* Timeline */}
+                {activityLoading ? (
+                  <div className="flex items-center gap-1.5 py-4 justify-center">
+                    {[0, 1, 2].map(i => (
+                      <div key={i} className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: `${i * 120}ms` }} />
+                    ))}
+                  </div>
+                ) : activityLog.length > 0 ? (
+                  <div className="space-y-3 mb-5">
+                    {activityLog.map(entry => {
+                      const cfg = ACTIVITY_TYPE_CFG[entry.type] ?? ACTIVITY_TYPE_CFG.note;
+                      const Icon = cfg.icon;
+                      return (
+                        <div key={entry.id} className="flex gap-3">
+                          <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center mt-0.5 ${cfg.bg}`}>
+                            <Icon className={`w-3.5 h-3.5 ${cfg.color}`} />
+                          </div>
+                          <div className="flex-1 min-w-0 pb-3 border-b border-gray-50 last:border-b-0">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className={`text-xs font-semibold ${cfg.color}`}>{cfg.label}</span>
+                              {entry.author && (
+                                <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-medium">
+                                  {entry.author}
+                                </span>
+                              )}
+                              <span className="text-[10px] text-gray-300 ml-auto flex-shrink-0">
+                                {timeAgo(entry.created_at)}
+                              </span>
+                            </div>
+                            {entry.body && <p className="text-sm text-gray-600 leading-relaxed">{entry.body}</p>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-300 text-center py-4 mb-4">No activity logged yet</p>
+                )}
+
+                {/* New entry composer */}
+                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200">
+                    <select
+                      value={newLogType}
+                      onChange={e => setNewLogType(e.target.value as ActivityEntry['type'])}
+                      className="text-xs bg-transparent font-medium text-gray-600 focus:outline-none cursor-pointer border-0"
+                    >
+                      <option value="note">📝 Note</option>
+                      <option value="call">📞 Call</option>
+                      <option value="email">✉️ Email</option>
+                      <option value="meeting">🤝 Meeting</option>
+                      <option value="demo">🖥️ Demo</option>
+                      <option value="other">💬 Other</option>
+                    </select>
+                    {claimedBy && (
+                      <span className="ml-auto text-[10px] bg-white border border-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-medium">
+                        {claimedBy}
+                      </span>
+                    )}
+                  </div>
+                  <textarea
+                    value={newLogBody}
+                    onChange={e => setNewLogBody(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleLogEntry(); }}
+                    placeholder="What happened? Log a call, note, or update…"
+                    rows={3}
+                    className="w-full border-0 py-3 px-3.5 text-sm text-gray-700 placeholder-gray-300 bg-white focus:outline-none resize-none"
+                  />
+                  <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-t border-gray-200">
+                    <span className="text-[10px] text-gray-300">⌘↵ to submit</span>
+                    <button
+                      onClick={handleLogEntry}
+                      disabled={loggingEntry || !newLogBody.trim()}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-white hover:bg-gray-700 transition-all active:scale-[.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Send className="w-3 h-3" />
+                      {loggingEntry ? 'Logging…' : 'Log Entry'}
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {/* Competitor Intel */}
