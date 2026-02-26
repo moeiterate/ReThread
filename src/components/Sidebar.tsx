@@ -15,7 +15,6 @@ export const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
     { to: "/backlog", icon: Trello, label: "Backlog" },
     { to: "/leads", icon: Users, label: "CRM / Leads" },
     { to: "/communications", icon: MessageSquare, label: "Communications" },
-    { to: "/leads", icon: Map, label: "Leads" }, // temporary map icon until a better one is chosen
     { to: "/documents", icon: FileEdit, label: "Documents" },
     { to: "/articles", icon: FileText, label: "Articles" },
     { to: "/prompts", icon: BookOpen, label: "Prompt Library" },
