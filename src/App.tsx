@@ -14,6 +14,7 @@ import { Documents } from './pages/Documents'
 import { DocumentEditor } from './pages/DocumentEditor'
 import Login from './pages/Login'
 import { PromptLibrary } from './pages/PromptLibrary'
+import { CompetitorSystems } from './pages/CompetitorSystems'
 import { MarketingROIDashboard } from './pages/articles/MarketingROIDashboard'
 import { EmployeeLeaveAutomation } from './pages/articles/EmployeeLeaveAutomation'
 import { CustomCRMSupabase } from './pages/articles/CustomCRMSupabase'
@@ -89,6 +90,7 @@ function App() {
           <Route path="/leads" element={<Leads />} />
           <Route path="/articles" element={<Articles />} />
           <Route path="/prompts" element={<PromptLibrary />} />
+          <Route path="/competitors" element={<CompetitorSystems />} />
           <Route path="/articles/marketing-roi-dashboard-guide" element={<MarketingROIDashboard />} />
           <Route path="/articles/employee-leave-management-automation" element={<EmployeeLeaveAutomation />} />
           <Route path="/articles/building-custom-crm-supabase" element={<CustomCRMSupabase />} />
