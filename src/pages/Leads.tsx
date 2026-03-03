@@ -62,7 +62,7 @@ const STATUS_CFG: Record<string, { label: string; dot: string; pill: string }> =
 };
 
 const SYSTEM_COLOR: Record<string, string> = {
-  Hudson:          'bg-indigo-100 text-indigo-800',
+  'Hudson / Hudson HGTS': 'bg-indigo-100 text-indigo-800',
   MyLimoBiz:       'bg-orange-100 text-orange-800',
   direct:          'bg-emerald-100 text-emerald-800',
   phone_only:      'bg-slate-100 text-slate-600',
@@ -79,6 +79,12 @@ const SYSTEM_LABEL: Record<string, string> = {
   unavailable: 'Unknown',
   direct:      'Direct',
 };
+
+const SPECIAL_SYSTEMS: { value: string; label: string }[] = [
+  { value: 'direct',      label: 'Direct'     },
+  { value: 'phone_only',  label: 'Phone Only'  },
+  { value: 'unavailable', label: 'Unknown'     },
+];
 
 const ACTIVITY_TYPE_CFG: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
   note:          { label: 'Note',          icon: MessageSquare, color: 'text-gray-500',    bg: 'bg-gray-100'   },
@@ -254,10 +260,12 @@ function SlideOver({
   lead,
   onClose,
   onSave,
+  competitors,
 }: {
   lead: Lead | null;
   onClose: () => void;
   onSave: (id: string, patch: Partial<Lead>) => void;
+  competitors: string[];
 }) {
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState('new');
@@ -623,8 +631,11 @@ function SlideOver({
                       className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">— unknown —</option>
-                      {Object.keys(SYSTEM_COLOR).map(s => (
-                        <option key={s} value={s}>{SYSTEM_LABEL[s] ?? s}</option>
+                      {SPECIAL_SYSTEMS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                      {competitors.map(name => (
+                        <option key={name} value={name}>{name}</option>
                       ))}
                     </select>
                   </div>
@@ -909,9 +920,10 @@ const US_STATES = [
   'VA','WA','WV','WI','WY',
 ];
 
-function NewLeadModal({ onClose, onCreated }: {
+function NewLeadModal({ onClose, onCreated, competitors }: {
   onClose: () => void;
   onCreated: (lead: Lead) => void;
+  competitors: string[];
 }) {
   const [form, setForm] = useState<NewLeadForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -1058,8 +1070,11 @@ function NewLeadModal({ onClose, onCreated }: {
                   className="w-full border border-gray-200 rounded-lg py-2 px-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">— unknown —</option>
-                  {Object.keys(SYSTEM_COLOR).map(s => (
-                    <option key={s} value={s}>{SYSTEM_LABEL[s] ?? s}</option>
+                  {SPECIAL_SYSTEMS.map(({ value, label }) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                  {competitors.map(name => (
+                    <option key={name} value={name}>{name}</option>
                   ))}
                 </select>
               </div>
@@ -1132,6 +1147,17 @@ export function Leads() {
   const [showNewLead, setShowNewLead] = useState(false);
   const [claimedByFilter, setClaimedByFilter] = useState('all');
   const [systemFilter, setSystemFilter] = useState('all');
+  const [competitors, setCompetitors] = useState<string[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from('system_competitors')
+      .select('name')
+      .order('name', { ascending: true })
+      .then(({ data }) => {
+        setCompetitors((data ?? []).map((r: { name: string }) => r.name));
+      });
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -1306,8 +1332,11 @@ export function Leads() {
             className="border border-gray-200 rounded-lg text-xs py-1.5 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
             <option value="all">All Systems</option>
-            {Object.keys(SYSTEM_COLOR).map(s => (
-              <option key={s} value={s}>{SYSTEM_LABEL[s] ?? s}</option>
+            {SPECIAL_SYSTEMS.map(({ value, label }) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+            {competitors.map(name => (
+              <option key={name} value={name}>{name}</option>
             ))}
           </select>
           {hasActiveFilter && (
@@ -1435,13 +1464,14 @@ export function Leads() {
       </div>
 
       {/* ── Slide-over ── */}
-      <SlideOver lead={selected} onClose={() => setSelected(null)} onSave={handleSave} />
+      <SlideOver lead={selected} onClose={() => setSelected(null)} onSave={handleSave} competitors={competitors} />
 
       {/* ── New lead modal ── */}
       {showNewLead && (
         <NewLeadModal
           onClose={() => setShowNewLead(false)}
           onCreated={handleCreated}
+          competitors={competitors}
         />
       )}
     </div>
