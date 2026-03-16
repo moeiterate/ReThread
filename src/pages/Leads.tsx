@@ -46,7 +46,7 @@ type ActivityEntry = {
   created_at: string;
 };
 
-type SortField = 'name' | 'state' | 'reservation_system' | 'status' | 'next_follow_up' | 'score';
+type SortField = 'name' | 'state' | 'reservation_system' | 'status' | 'next_follow_up' | 'score' | 'fetched_at';
 type SortDir = 'asc' | 'desc';
 type QuickFilter = 'all' | 'hudson' | 'toprated';
 
@@ -1372,13 +1372,14 @@ export function Leads() {
                 <SortTh field="score" sortField={sortField} sortDir={sortDir} onSort={toggleSort}>Score</SortTh>
                 <SortTh field="next_follow_up" sortField={sortField} sortDir={sortDir} onSort={toggleSort}>Follow-up</SortTh>
                 <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Claimed</th>
+                <SortTh field="fetched_at" sortField={sortField} sortDir={sortDir} onSort={toggleSort}>Created</SortTh>
                 <th className="px-4 py-3 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-24 text-center">
+                  <td colSpan={9} className="py-24 text-center">
                     <Building2 className="w-8 h-8 text-gray-200 mx-auto mb-3" />
                     <p className="text-sm text-gray-400">No leads match your filters</p>
                     {hasActiveFilter && (
@@ -1439,6 +1440,13 @@ export function Leads() {
                         ) : (
                           <span className="text-gray-200 text-xs">—</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="text-xs text-gray-400 whitespace-nowrap">
+                          {lead.fetched_at
+                            ? new Date(lead.fetched_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                            : '—'}
+                        </span>
                       </td>
                       <td className="pr-6 md:pr-8 pl-4 py-3.5">
                         <div className="flex items-center justify-end gap-0.5" onClick={e => e.stopPropagation()}>

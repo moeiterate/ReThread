@@ -37,6 +37,15 @@ const articles = [
     date: 'February 4, 2026',
     readTime: '14 min read',
     category: 'Market Research & Data Analysis'
+  },
+  {
+    id: 5,
+    slug: 'airport-shuttle-dispatch',
+    title: 'Why Airport Shuttle Dispatch Is Harder Than It Looks',
+    excerpt: 'A look at the real complexity behind coordinating vehicles, drivers, and passengers in a transportation operation — and the principles guiding how we think about building better tools for it.',
+    date: 'March 5, 2026',
+    readTime: '12 min read',
+    category: 'Transportation Operations'
   }
 ];
 
