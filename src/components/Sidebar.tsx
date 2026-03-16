@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Map, Trello, MessageSquare, Settings, X, Zap, FileText, FileEdit, LogOut, BookOpen, Users, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, Map, Trello, MessageSquare, Settings, X, Zap, FileText, FileEdit, LogOut, BookOpen, Users, BarChart2, Rocket, Megaphone } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 type SidebarProps = {
@@ -14,11 +14,13 @@ export const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
     { to: "/sprints", icon: Zap, label: "Active Sprint" },
     { to: "/backlog", icon: Trello, label: "Backlog" },
     { to: "/leads", icon: Users, label: "CRM / Leads" },
+    { to: "/startup-leads", icon: Rocket, label: "Startup Leads" },
     { to: "/communications", icon: MessageSquare, label: "Communications" },
     { to: "/documents", icon: FileEdit, label: "Documents" },
     { to: "/articles", icon: FileText, label: "Articles" },
     { to: "/prompts", icon: BookOpen, label: "Prompt Library" },
     { to: "/competitors", icon: BarChart2, label: "Competitors" },
+    { to: "/caravan-plan", icon: Megaphone, label: "Caravan 14-Day Plan" },
   ];
 
   return (

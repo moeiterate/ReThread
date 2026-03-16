@@ -9,16 +9,19 @@ import { Backlog } from './pages/Backlog'
 import { Sprints } from './pages/Sprints'
 import { Communications } from './pages/Communications'
 import { Leads } from './pages/Leads'
+import { StartupLeads } from './pages/StartupLeads'
 import { Articles } from './pages/Articles'
 import { Documents } from './pages/Documents'
 import { DocumentEditor } from './pages/DocumentEditor'
 import Login from './pages/Login'
 import { PromptLibrary } from './pages/PromptLibrary'
 import { CompetitorSystems } from './pages/CompetitorSystems'
+import { CaravanGrowthPlan } from './pages/CaravanGrowthPlan'
 import { MarketingROIDashboard } from './pages/articles/MarketingROIDashboard'
 import { EmployeeLeaveAutomation } from './pages/articles/EmployeeLeaveAutomation'
 import { CustomCRMSupabase } from './pages/articles/CustomCRMSupabase'
 import { UpworkAutomationAnalysis } from './pages/articles/UpworkAutomationAnalysis'
+import { AirportShuttleDispatch } from './pages/articles/AirportShuttleDispatch'
 import { TemplatesIndex } from './templates/TemplatesIndex'
 import { SaaSModern } from './templates/SaaSModern'
 import { SaaSCentered } from './templates/SaaSCentered'
@@ -88,13 +91,16 @@ function App() {
           <Route path="/backlog" element={<Backlog />} />
           <Route path="/communications" element={<Communications />} />
           <Route path="/leads" element={<Leads />} />
+          <Route path="/startup-leads" element={<StartupLeads />} />
           <Route path="/articles" element={<Articles />} />
           <Route path="/prompts" element={<PromptLibrary />} />
           <Route path="/competitors" element={<CompetitorSystems />} />
+          <Route path="/caravan-plan" element={<CaravanGrowthPlan />} />
           <Route path="/articles/marketing-roi-dashboard-guide" element={<MarketingROIDashboard />} />
           <Route path="/articles/employee-leave-management-automation" element={<EmployeeLeaveAutomation />} />
           <Route path="/articles/building-custom-crm-supabase" element={<CustomCRMSupabase />} />
           <Route path="/articles/upwork-automation-analysis" element={<UpworkAutomationAnalysis />} />
+          <Route path="/articles/airport-shuttle-dispatch" element={<AirportShuttleDispatch />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/documents/:id" element={<DocumentEditor />} />
         </Route>
