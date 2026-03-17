@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   CheckCircle2, Circle, ChevronDown, Target, TrendingUp,
   Mail, Calendar, BarChart2, Zap, Globe, Search, Share2,
-  ClipboardList, Trophy, Flag, ChevronRight
+  ClipboardList, Trophy, Flag, ChevronRight, UserCircle, X
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -58,6 +59,7 @@ const DAYS: Day[] = [
       'Trial page live with Calendly embed',
       '20 operators emailed, 10 called',
       'Midnight Audit results processed & matched to leads',
+      'All 8 directory submissions filed (approval clock starts today)',
       'You could onboard someone tomorrow if they said yes',
     ],
     sections: [
@@ -83,6 +85,20 @@ const DAYS: Day[] = [
       {
         track: 'C', tasks: [
           { id: 'd1c1', text: 'Process Midnight Audit results', subTasks: ['Match recordings to leads in the database', 'Transcribe voicemail greetings', 'Flag worst ones (default carrier greetings, outdated info, no callback promise)', 'Identify 2–3 operators who actually answered (competitive intel)'] },
+        ],
+      },
+      {
+        track: 'D', tasks: [
+          { id: 'd1d1', text: 'Submit all 8 directories today — approval clocks vary from 24 hrs to 2+ weeks', subTasks: [
+            'G2 — high-traffic SaaS directory, approval can take 1–2 weeks',
+            'Capterra — covers GetApp + Software Advice automatically',
+            'Crozdesk — typically approved within a few days',
+            'AlternativeTo — list as alternative to My AI Front Desk, Rosie, Smith.ai',
+            'NLA vendor directory (members.limo.org) — industry-specific, high signal',
+            'LimousineWorldwide.Directory — niche vertical, fast turnaround',
+            'SaaS Hub',
+            'Uneed or Launching Next — startup discovery, submit today',
+          ] },
         ],
       },
     ],
@@ -113,6 +129,12 @@ const DAYS: Day[] = [
           { id: 'd2b1', text: 'Publish /for/airport-shuttle-operators — vertical landing page (seat utilization pain, CTA → trial)' },
           { id: 'd2b2', text: 'Publish /for/limo-black-car-services — vertical landing page (answered at midnight pain, CTA → trial)' },
           { id: 'd2b3', text: 'Publish Blog Post 1: "How Many Bookings Does a Missed Call Cost Your Shuttle Company?" (ROI math, FAQPage schema, comparison table)' },
+        ],
+      },
+      {
+        track: 'D', tasks: [
+          { id: 'd2d1', text: 'Confirm all 8 directory submissions went through — check for confirmation emails or pending status notices' },
+          { id: 'd2d2', text: 'If any submission failed or was rejected, resubmit with corrected listing info' },
         ],
       },
     ],
@@ -158,7 +180,6 @@ const DAYS: Day[] = [
     doneWhen: [
       '125 total prospects contacted',
       'Multiple personalized angles in play',
-      '4 directories submitted',
       '2+ setup calls booked or 1 trial imminent',
     ],
     sections: [
@@ -178,11 +199,6 @@ const DAYS: Day[] = [
           { id: 'd4c1', text: 'Build bad review evidence file generator (auto-compile ready-to-send snippet per lead)' },
         ],
       },
-      {
-        track: 'D', tasks: [
-          { id: 'd4d1', text: 'Submit 4 high-signal directories', subTasks: ['NLA vendor directory (members.limo.org)', 'LimousineWorldwide.Directory', 'Capterra (covers GetApp + Software Advice)', 'AlternativeTo (list vs. My AI Front Desk, Rosie, Smith.ai)'] },
-        ],
-      },
     ],
   },
   {
@@ -193,7 +209,6 @@ const DAYS: Day[] = [
       'At least 1 trial live with forwarding configured and agent answering calls tonight',
       'OR: a start date locked for Monday with a specific operator',
       '30 mystery shop records logged',
-      '8 total directories submitted (Week 1 done)',
       '3 blog posts published',
       '150+ total prospects contacted',
     ],
@@ -215,11 +230,6 @@ const DAYS: Day[] = [
       {
         track: 'C', tasks: [
           { id: 'd5c1', text: 'Mystery shop 30 operators as a customer trying to book airport pickup', subTasks: ['Call 15 during business hours (10 AM–2 PM)', 'Call 15 after business hours (6 PM–8 PM)', 'Log: answer type, rings, hold time, professionalism, booking completion'] },
-        ],
-      },
-      {
-        track: 'D', tasks: [
-          { id: 'd5d1', text: 'Submit 4 more directories', subTasks: ['G2', 'Crozdesk', 'SaaS Hub', 'One startup directory (Uneed or Launching Next)'] },
         ],
       },
     ],
@@ -384,6 +394,12 @@ const DAYS: Day[] = [
       {
         track: 'D', tasks: [
           { id: 'd12d1', text: 'Post first original Reddit content', subTasks: ['r/sweatystartup or r/smallbusiness: "We called 50 shuttle companies to test their after-hours phone experience. Here\'s what we found." (link to report)', 'If lands well: post build-in-public story to r/SaaS'] },
+          { id: 'd12d2', text: 'Product Hunt launch — submit listing today for scheduled publish', subTasks: [
+            'Reason for waiting: PHunt audience skews B2C/developer — launch when you have operator testimonials and real call data to show in the listing',
+            'Write the tagline, description, and first comment using trial results as proof',
+            'Line up upvote support from your network before going live',
+            'Schedule launch for a Tuesday or Wednesday for maximum visibility',
+          ] },
         ],
       },
     ],
@@ -466,49 +482,134 @@ const TOOL_QUEUE = [
 
 const START_DATE = new Date('2026-03-16T00:00:00');
 
+// ─── Team members ─────────────────────────────────────────────────────────────
+const TEAM_MEMBERS = [
+  { email: 'ataleb52@gmail.com', name: 'Ahmad', initials: 'AT', color: 'bg-orange-500' },
+  { email: 'moazgelhag@gmail.com', name: 'Moaz', initials: 'MG', color: 'bg-violet-500' },
+] as const;
+
+function memberByEmail(email: string | null | undefined) {
+  return TEAM_MEMBERS.find(m => m.email === email) ?? null;
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function CaravanGrowthPlan() {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [owners, setOwners] = useState<Record<string, string>>({});
   const [metrics, setMetrics] = useState<Record<string, string>>({});
   const [toolDone, setToolDone] = useState<Record<number, boolean>>({});
-  const [activeWeek, setActiveWeek] = useState<1 | 2>(1);
+  const [activeTab, setActiveTab] = useState<'week1' | 'week2' | 'tracks'>('week1');
+  const activeWeek: 1 | 2 = activeTab === 'week2' ? 2 : 1;
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set(['day-1']));
   const [showTemplates, setShowTemplates] = useState(false);
+  const [dbLoading, setDbLoading] = useState(true);
+  const currentUserEmail = useRef<string | null>(null);
 
-  // Load from localStorage
+  // ── Bootstrap: get current user + load all state from Supabase ──────────
   useEffect(() => {
-    try {
-      const c = localStorage.getItem('caravan-plan-checked');
-      const m = localStorage.getItem('caravan-plan-metrics');
-      const t = localStorage.getItem('caravan-plan-tools');
-      if (c) setChecked(JSON.parse(c));
-      if (m) setMetrics(JSON.parse(m));
-      if (t) setToolDone(JSON.parse(t));
-    } catch {}
+    async function loadState() {
+      // Get current authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+      currentUserEmail.current = user?.email ?? null;
+
+      const { data, error } = await supabase
+        .from('caravan_plan_state')
+        .select('id, category, completed, owner_email, text_value');
+
+      if (error) {
+        console.error('Failed to load plan state from Supabase:', error);
+        // Graceful fallback to localStorage
+        try {
+          const c = localStorage.getItem('caravan-plan-checked');
+          const m = localStorage.getItem('caravan-plan-metrics');
+          const t = localStorage.getItem('caravan-plan-tools');
+          if (c) setChecked(JSON.parse(c));
+          if (m) setMetrics(JSON.parse(m));
+          if (t) setToolDone(JSON.parse(t));
+        } catch {}
+      } else if (data) {
+        const newChecked: Record<string, boolean> = {};
+        const newOwners: Record<string, string> = {};
+        const newMetrics: Record<string, string> = {};
+        const newTools: Record<number, boolean> = {};
+
+        for (const row of data) {
+          if (row.category === 'task') {
+            newChecked[row.id] = row.completed;
+            if (row.owner_email) newOwners[row.id] = row.owner_email;
+          } else if (row.category === 'metric') {
+            if (row.text_value) newMetrics[row.id] = row.text_value;
+          } else if (row.category === 'tool') {
+            const num = parseInt(row.id.replace('tool-', ''), 10);
+            if (!isNaN(num)) newTools[num] = row.completed;
+          }
+        }
+        setChecked(newChecked);
+        setOwners(newOwners);
+        setMetrics(newMetrics);
+        setToolDone(newTools);
+      }
+      setDbLoading(false);
+    }
+    loadState();
   }, []);
 
-  const saveChecked = useCallback((next: Record<string, boolean>) => {
-    setChecked(next);
-    localStorage.setItem('caravan-plan-checked', JSON.stringify(next));
+  // ── Persist helpers (upsert to Supabase) ─────────────────────────────────
+  const upsertTask = useCallback(async (
+    id: string,
+    completed: boolean,
+    ownerEmail: string | null
+  ) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    await supabase.from('caravan_plan_state').upsert(
+      { id, category: 'task', completed, owner_email: ownerEmail, updated_by: user?.id ?? null },
+      { onConflict: 'id' }
+    );
   }, []);
 
-  const saveMetrics = useCallback((next: Record<string, string>) => {
-    setMetrics(next);
-    localStorage.setItem('caravan-plan-metrics', JSON.stringify(next));
+  const upsertMetric = useCallback(async (id: string, value: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    await supabase.from('caravan_plan_state').upsert(
+      { id, category: 'metric', completed: false, text_value: value, updated_by: user?.id ?? null },
+      { onConflict: 'id' }
+    );
   }, []);
 
-  const saveTools = useCallback((next: Record<number, boolean>) => {
-    setToolDone(next);
-    localStorage.setItem('caravan-plan-tools', JSON.stringify(next));
+  const upsertTool = useCallback(async (num: number, completed: boolean) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    await supabase.from('caravan_plan_state').upsert(
+      { id: `tool-${num}`, category: 'tool', completed, updated_by: user?.id ?? null },
+      { onConflict: 'id' }
+    );
   }, []);
 
+  // ── Action handlers ───────────────────────────────────────────────────────
   const toggleTask = (id: string) => {
-    saveChecked({ ...checked, [id]: !checked[id] });
+    const next = !checked[id];
+    setChecked(prev => ({ ...prev, [id]: next }));
+    upsertTask(id, next, owners[id] ?? null);
+  };
+
+  const setOwner = (taskId: string, email: string | null) => {
+    setOwners(prev => {
+      const next = { ...prev };
+      if (email) next[taskId] = email;
+      else delete next[taskId];
+      return next;
+    });
+    upsertTask(taskId, checked[taskId] ?? false, email);
+  };
+
+  const saveMetric = (id: string, value: string) => {
+    setMetrics(prev => ({ ...prev, [id]: value }));
+    upsertMetric(id, value);
   };
 
   const toggleTool = (num: number) => {
-    saveTools({ ...toolDone, [num]: !toolDone[num] });
+    const next = !toolDone[num];
+    setToolDone(prev => ({ ...prev, [num]: next }));
+    upsertTool(num, next);
   };
 
   const toggleDay = (id: string) => {
@@ -550,6 +651,17 @@ export function CaravanGrowthPlan() {
   const w1Total = week1Days.reduce((n, d) => n + dayProgress(d).total, 0);
   const w2Done = week2Days.reduce((n, d) => n + dayProgress(d).done, 0);
   const w2Total = week2Days.reduce((n, d) => n + dayProgress(d).total, 0);
+
+  if (dbLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-color)' }}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-orange-400 border-t-transparent animate-spin" />
+          <span className="text-sm text-gray-400">Loading plan state…</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-color)' }}>
@@ -612,26 +724,39 @@ export function CaravanGrowthPlan() {
 
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
 
-        {/* ── Week Tabs ────────────────────────────────────────────────────── */}
+        {/* ── Tabs ────────────────────────────────────────────────────── */}
         <div className="flex items-center gap-1 p-1 rounded-xl bg-white border" style={{ borderColor: 'var(--line-color)', width: 'fit-content' }}>
           {([1, 2] as const).map(w => {
+            const key = w === 1 ? 'week1' : 'week2';
             const days = w === 1 ? week1Days : week2Days;
             const done = days.reduce((n, d) => n + dayProgress(d).done, 0);
             const total = days.reduce((n, d) => n + dayProgress(d).total, 0);
             const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+            const isActive = activeTab === key;
             return (
               <button
                 key={w}
-                onClick={() => setActiveWeek(w)}
-                className={`flex items-center gap-3 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeWeek === w ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+                onClick={() => setActiveTab(key)}
+                className={`flex items-center gap-3 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
               >
                 <span>{w === 1 ? 'Week 1' : 'Week 2'}</span>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${activeWeek === w ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}`}>{pct}%</span>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}`}>{pct}%</span>
               </button>
             );
           })}
+          <button
+            onClick={() => setActiveTab('tracks')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'tracks' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+          >
+            <BarChart2 className="w-3.5 h-3.5" />
+            <span>Tracks</span>
+          </button>
         </div>
 
+        {activeTab === 'tracks' ? (
+          <TracksOverview days={DAYS} checked={checked} />
+        ) : (
+          <>
         {/* ── Week Description ─────────────────────────────────────────────── */}
         <div className="rounded-xl border p-4 flex items-start gap-3" style={{ borderColor: 'var(--line-color)', background: 'white' }}>
           <div className="mt-0.5 p-2 rounded-lg bg-orange-50">
@@ -730,7 +855,9 @@ export function CaravanGrowthPlan() {
                                   key={task.id}
                                   task={task}
                                   checked={checked}
+                                  owners={owners}
                                   onToggle={toggleTask}
+                                  onSetOwner={setOwner}
                                 />
                               ))}
                             </div>
@@ -762,6 +889,8 @@ export function CaravanGrowthPlan() {
             );
           })}
         </div>
+          </>
+        )}
 
         {/* ── Metrics Tracker ──────────────────────────────────────────────── */}
         <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'var(--line-color)' }}>
@@ -775,8 +904,8 @@ export function CaravanGrowthPlan() {
             </div>
           </div>
           <div className="bg-white grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x" style={{ borderColor: 'var(--line-color)' }}>
-            <MetricsTable title="Week 1 Targets" targets={WEEK1_TARGETS} metrics={metrics} onChange={(id, val) => saveMetrics({ ...metrics, [id]: val })} />
-            <MetricsTable title="14-Day Overall Targets" targets={OVERALL_TARGETS} metrics={metrics} onChange={(id, val) => saveMetrics({ ...metrics, [id]: val })} />
+            <MetricsTable title="Week 1 Targets" targets={WEEK1_TARGETS} metrics={metrics} onChange={saveMetric} />
+            <MetricsTable title="14-Day Overall Targets" targets={OVERALL_TARGETS} metrics={metrics} onChange={saveMetric} />
           </div>
         </div>
 
@@ -873,13 +1002,160 @@ export function CaravanGrowthPlan() {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function TaskItem({ task, checked, onToggle }: {
+const TRACK_DETAILS: Record<Track, {
+  role: string;
+  rule: string;
+  focus: string[];
+  priority: string;
+  priorityColor: string;
+}> = {
+  A: {
+    role: 'Get operators onto the product.',
+    rule: 'Primary track. Starts Day 1. Every single day has outreach.',
+    focus: [
+      'Cold email campaigns (30–40/day across 9 outreach angles)',
+      'Phone calls to warm leads and trial prospects',
+      'Setup calls — walk operators through call forwarding live',
+      'Trial conversion — push from free trial to paying customer',
+    ],
+    priority: 'Primary',
+    priorityColor: 'bg-orange-100 text-orange-700',
+  },
+  B: {
+    role: 'Make Caravan findable via search and content.',
+    rule: 'Supporting. Capped: 2 vertical pages + 3 blog posts in Week 1, 1 industry report in Week 2.',
+    focus: [
+      '/free-after-hours-trial page (with Calendly embed)',
+      '2 vertical landing pages (/for/airport-shuttles, /for/limo-black-car)',
+      '4 blog posts + 1 industry report published',
+      'Schema markup (FAQ, Organization, Article) on all key pages',
+    ],
+    priority: 'Supporting',
+    priorityColor: 'bg-emerald-100 text-emerald-700',
+  },
+  C: {
+    role: 'Build intelligence that sharpens outreach.',
+    rule: 'Feeds Track A. Only build what directly improves outreach quality.',
+    focus: [
+      'Midnight Audit — call operators overnight, record what callers hear',
+      'GBP hours enrichment — flag operators who close before 7 PM',
+      'Negative review scraper — surface "no one answered" complaints',
+      'Mystery shopping — call 30 operators posing as a customer',
+    ],
+    priority: 'Supporting',
+    priorityColor: 'bg-blue-100 text-blue-700',
+  },
+  D: {
+    role: 'Expand reach through directories, Reddit, and partners.',
+    rule: 'Directories submitted Day 1 — approval takes days to weeks, so file immediately. Reddit and partnerships come after proof exists.',
+    focus: [
+      'All 8 directory submissions filed Day 1 (G2, Capterra, Crozdesk, AlternativeTo, NLA, LimousineWorldwide, SaaS Hub, Uneed)',
+      'Reddit presence — comments first (Week 1), original posts in Week 2',
+      'Product Hunt — deferred to Day 12 when operator data and testimonials are ready',
+      'Consultant outreach (3 emails) + publication pitches — Week 2 only, after industry report is published',
+    ],
+    priority: 'Bounded',
+    priorityColor: 'bg-violet-100 text-violet-700',
+  },
+};
+
+function TracksOverview({ days, checked }: {
+  days: Day[];
+  checked: Record<string, boolean>;
+}) {
+  return (
+    <div className="space-y-4">
+      {(Object.entries(TRACK_META) as [Track, typeof TRACK_META[Track]][]).map(([key, meta]) => {
+        const detail = TRACK_DETAILS[key];
+        const Icon = meta.icon;
+
+        // Stats: tasks for this track across all days
+        const trackDays = days.filter(d => d.sections.some(s => s.track === key));
+        const allTrackTasks = days.flatMap(d => d.sections.filter(s => s.track === key).flatMap(s => s.tasks));
+        const total = allTrackTasks.reduce((n, t) => n + 1 + (t.subTasks?.length ?? 0), 0);
+        const done = allTrackTasks.reduce((n, t) => {
+          let c = checked[t.id] ? 1 : 0;
+          t.subTasks?.forEach((_, i) => { if (checked[`${t.id}-sub-${i}`]) c++; });
+          return n + c;
+        }, 0);
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+        return (
+          <div key={key} className="rounded-xl border overflow-hidden bg-white" style={{ borderColor: 'var(--line-color)' }}>
+            {/* Track header */}
+            <div className={`px-5 py-4 border-b flex items-start gap-4 ${meta.light}`} style={{ borderColor: 'rgba(0,0,0,0.06)' }}>
+              <div className={`flex-shrink-0 w-9 h-9 rounded-lg ${meta.bg} flex items-center justify-center`}>
+                <Icon className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className={`text-xs font-bold uppercase tracking-widest ${meta.color}`}>Track {key}</span>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${detail.priorityColor}`}>{detail.priority}</span>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${pct === 100 ? 'bg-emerald-100 text-emerald-700' : 'bg-white/70 text-gray-500'}`}>{done}/{total} tasks</span>
+                </div>
+                <h3 className={`font-bold text-base ${meta.color}`}>{meta.label}</h3>
+                <p className="text-xs text-gray-600 mt-0.5">{detail.role}</p>
+              </div>
+              {/* Mini progress */}
+              <div className="flex-shrink-0 text-right hidden sm:block">
+                <div className={`text-xl font-bold ${pct === 100 ? 'text-emerald-600' : meta.color}`}>{pct}%</div>
+                <div className="w-20 h-1.5 bg-white/60 rounded-full overflow-hidden mt-1">
+                  <div className={`h-full rounded-full ${meta.bg} transition-all duration-500`} style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="px-5 py-4 grid sm:grid-cols-2 gap-5">
+              {/* Rule */}
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">Rule</div>
+                <p className="text-xs text-gray-600 leading-relaxed">{detail.rule}</p>
+              </div>
+
+              {/* Focus areas */}
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">What's In Scope</div>
+                <ul className="space-y-1.5">
+                  {detail.focus.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
+                      <ChevronRight className={`w-3 h-3 mt-0.5 flex-shrink-0 ${meta.color}`} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Active days strip */}
+            <div className="px-5 py-3 border-t flex items-center gap-3" style={{ borderColor: 'var(--line-color)' }}>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Active days</span>
+              <div className="flex flex-wrap gap-1.5">
+                {trackDays.map(d => (
+                  <span key={d.id} className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${meta.light} ${meta.color}`}>
+                    Day {d.dayNumber}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function TaskItem({ task, checked, owners, onToggle, onSetOwner }: {
   task: Task;
   checked: Record<string, boolean>;
+  owners: Record<string, string>;
   onToggle: (id: string) => void;
+  onSetOwner: (taskId: string, email: string | null) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [ownerOpen, setOwnerOpen] = useState(false);
   const hasSubTasks = task.subTasks && task.subTasks.length > 0;
+  const assignedMember = memberByEmail(owners[task.id]);
 
   return (
     <div>
@@ -892,6 +1168,46 @@ function TaskItem({ task, checked, onToggle }: {
         <span className={`text-sm flex-1 leading-relaxed ${checked[task.id] ? 'line-through text-gray-400' : 'text-gray-700'}`}>
           {task.text}
         </span>
+        {/* Owner chip */}
+        <div className="relative flex-shrink-0">
+          <button
+            onClick={() => setOwnerOpen(o => !o)}
+            title={assignedMember ? `Assigned to ${assignedMember.name}` : 'Assign owner'}
+            className={`flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold transition-all border ${
+              assignedMember
+                ? `${assignedMember.color} text-white border-transparent`
+                : 'bg-transparent border-gray-200 text-gray-300 hover:border-gray-300 hover:text-gray-400'
+            }`}
+          >
+            {assignedMember ? assignedMember.initials : <UserCircle className="w-3.5 h-3.5" />}
+          </button>
+          {ownerOpen && (
+            <div className="absolute right-0 top-6 z-20 bg-white border rounded-lg shadow-lg py-1 min-w-[130px]" style={{ borderColor: 'var(--line-color)' }}>
+              {TEAM_MEMBERS.map(m => (
+                <button
+                  key={m.email}
+                  onClick={() => { onSetOwner(task.id, m.email); setOwnerOpen(false); }}
+                  className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors ${
+                    owners[task.id] === m.email ? 'font-semibold text-gray-900' : 'text-gray-600'
+                  }`}
+                >
+                  <span className={`w-5 h-5 rounded-full text-[9px] font-bold text-white flex items-center justify-center flex-shrink-0 ${m.color}`}>{m.initials}</span>
+                  {m.name}
+                  {owners[task.id] === m.email && <span className="ml-auto text-emerald-500">&#10003;</span>}
+                </button>
+              ))}
+              {owners[task.id] && (
+                <button
+                  onClick={() => { onSetOwner(task.id, null); setOwnerOpen(false); }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400 hover:bg-gray-50 transition-colors border-t mt-1 pt-1.5"
+                  style={{ borderColor: 'var(--line-color)' }}
+                >
+                  <X className="w-3.5 h-3.5" /> Unassign
+                </button>
+              )}
+            </div>
+          )}
+        </div>
         {hasSubTasks && (
           <button onClick={() => setExpanded(!expanded)} className="flex-shrink-0 mt-0.5 text-gray-400 hover:text-gray-600 transition-colors">
             <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
@@ -909,7 +1225,7 @@ function TaskItem({ task, checked, onToggle }: {
                     ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                     : <Circle className="w-3.5 h-3.5 text-gray-200 group-hover:text-gray-300 transition-colors" />}
                 </button>
-                <span className={`text-xs leading-relaxed ${checked[subId] ? 'line-through text-gray-400' : 'text-gray-600'}`}>
+                <span className={`text-xs leading-relaxed flex-1 ${checked[subId] ? 'line-through text-gray-400' : 'text-gray-600'}`}>
                   {sub}
                 </span>
               </div>
