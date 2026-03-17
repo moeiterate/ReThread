@@ -71,6 +71,7 @@ const DAYS: Day[] = [
           { id: 'd1a4', text: 'Send 20 free-trial emails to best shuttle prospects using Angle 1' },
           { id: 'd1a5', text: 'Call 10 prospects' },
           { id: 'd1a6', text: 'Log every contact in Outreach tracker with pain signal and angle used' },
+          { id: 'd1a7', text: 'Call Jeff from Groome' },
         ],
       },
       {
