@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   CheckCircle2, Circle, ChevronDown, Target, TrendingUp,
   Mail, Calendar, BarChart2, Zap, Globe, Search, Share2,
-  ClipboardList, Trophy, Flag, ChevronRight, UserCircle, X
+  ClipboardList, Trophy, Flag, ChevronRight, UserCircle, X, Trash2
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -500,6 +500,7 @@ export function CaravanGrowthPlan() {
   const [owners, setOwners] = useState<Record<string, string>>({});
   const [metrics, setMetrics] = useState<Record<string, string>>({});
   const [toolDone, setToolDone] = useState<Record<number, boolean>>({});
+  const [deleted, setDeleted] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<'week1' | 'week2' | 'tracks'>('week1');
   const activeWeek: 1 | 2 = activeTab === 'week2' ? 2 : 1;
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set(['day-1']));
@@ -516,7 +517,7 @@ export function CaravanGrowthPlan() {
 
       const { data, error } = await supabase
         .from('caravan_plan_state')
-        .select('id, category, completed, owner_email, text_value');
+        .select('id, category, completed, owner_email, text_value, deleted');
 
       if (error) {
         console.error('Failed to load plan state from Supabase:', error);
@@ -534,11 +535,13 @@ export function CaravanGrowthPlan() {
         const newOwners: Record<string, string> = {};
         const newMetrics: Record<string, string> = {};
         const newTools: Record<number, boolean> = {};
+        const newDeleted: Record<string, boolean> = {};
 
         for (const row of data) {
           if (row.category === 'task') {
             newChecked[row.id] = row.completed;
             if (row.owner_email) newOwners[row.id] = row.owner_email;
+            if (row.deleted) newDeleted[row.id] = true;
           } else if (row.category === 'metric') {
             if (row.text_value) newMetrics[row.id] = row.text_value;
           } else if (row.category === 'tool') {
@@ -550,6 +553,7 @@ export function CaravanGrowthPlan() {
         setOwners(newOwners);
         setMetrics(newMetrics);
         setToolDone(newTools);
+        setDeleted(newDeleted);
       }
       setDbLoading(false);
     }
@@ -560,11 +564,12 @@ export function CaravanGrowthPlan() {
   const upsertTask = useCallback(async (
     id: string,
     completed: boolean,
-    ownerEmail: string | null
+    ownerEmail: string | null,
+    isDeleted = false
   ) => {
     const { data: { user } } = await supabase.auth.getUser();
     await supabase.from('caravan_plan_state').upsert(
-      { id, category: 'task', completed, owner_email: ownerEmail, updated_by: user?.id ?? null },
+      { id, category: 'task', completed, owner_email: ownerEmail, deleted: isDeleted, updated_by: user?.id ?? null },
       { onConflict: 'id' }
     );
   }, []);
@@ -589,7 +594,7 @@ export function CaravanGrowthPlan() {
   const toggleTask = (id: string) => {
     const next = !checked[id];
     setChecked(prev => ({ ...prev, [id]: next }));
-    upsertTask(id, next, owners[id] ?? null);
+    upsertTask(id, next, owners[id] ?? null, deleted[id] ?? false);
   };
 
   const setOwner = (taskId: string, email: string | null) => {
@@ -599,7 +604,12 @@ export function CaravanGrowthPlan() {
       else delete next[taskId];
       return next;
     });
-    upsertTask(taskId, checked[taskId] ?? false, email);
+    upsertTask(taskId, checked[taskId] ?? false, email, deleted[taskId] ?? false);
+  };
+
+  const deleteTask = (id: string) => {
+    setDeleted(prev => ({ ...prev, [id]: true }));
+    upsertTask(id, checked[id] ?? false, owners[id] ?? null, true);
   };
 
   const saveMetric = (id: string, value: string) => {
@@ -851,7 +861,7 @@ export function CaravanGrowthPlan() {
                               </span>
                             </div>
                             <div className="space-y-2">
-                              {section.tasks.map(task => (
+                              {section.tasks.filter(t => !deleted[t.id]).map(task => (
                                 <TaskItem
                                   key={task.id}
                                   task={task}
@@ -859,6 +869,7 @@ export function CaravanGrowthPlan() {
                                   owners={owners}
                                   onToggle={toggleTask}
                                   onSetOwner={setOwner}
+                                  onDelete={deleteTask}
                                 />
                               ))}
                             </div>
@@ -1146,12 +1157,13 @@ function TracksOverview({ days, checked }: {
   );
 }
 
-function TaskItem({ task, checked, owners, onToggle, onSetOwner }: {
+function TaskItem({ task, checked, owners, onToggle, onSetOwner, onDelete }: {
   task: Task;
   checked: Record<string, boolean>;
   owners: Record<string, string>;
   onToggle: (id: string) => void;
   onSetOwner: (taskId: string, email: string | null) => void;
+  onDelete: (id: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [ownerOpen, setOwnerOpen] = useState(false);
@@ -1209,6 +1221,13 @@ function TaskItem({ task, checked, owners, onToggle, onSetOwner }: {
             </div>
           )}
         </div>
+        <button
+          onClick={() => onDelete(task.id)}
+          title="Remove task"
+          className="flex-shrink-0 mt-0.5 text-gray-200 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
         {hasSubTasks && (
           <button onClick={() => setExpanded(!expanded)} className="flex-shrink-0 mt-0.5 text-gray-400 hover:text-gray-600 transition-colors">
             <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
